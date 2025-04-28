@@ -116,14 +116,25 @@ async function seedIfEmpty() {
   const { userTemplates } = await chrome.storage.local.get(['userTemplates']);
   if (userTemplates && userTemplates.length > 0) return;
 
-  const sample = {
-    id: 'sample_hello',
-    title: '안녕하세요',
-    body: '안녕하세요, 문의해 주셔서 감사합니다!'
-  };
+  const sample = [
+    {
+    id: 'official_01',
+    title: '이메일 도입부 인사',
+    body: '안녕하세요, \n 도화엔지니어링 도시단지1부 정규봉 사원입니다.'
+    },
+    {
+    id: 'official_02',
+    title: '월간공정보고',
+    body: ' - 계획 85.5%, 실적 76.3%(계획대비 89.3%)\n - 지연사유 : ○○군 토지이용계획 확정지연(23년 3월까지 확정목표)\n - 만회대책 : ○○월 심의 상정 시 만회'  
+    }
+    {
+      id: 'official_03',
+      title: '출장정산',
+      body: ' - 남양주도시정비기본계획 출장건 / 자차이용\n - 부시장 보고 조속추진 의견 등'  
+  ];
   
   await chrome.storage.local.set({
-    userTemplates: [sample]
+    userTemplates: sample
   });
 }
 

@@ -99,15 +99,15 @@ function renderTemplates() {
     menuBtn.appendChild(menuIcon);
     
     // 클릭 이벤트: 템플릿 편집
-    content.addEventListener('click', () => {
-      editTemplate(index);
-    });
+    // content.addEventListener('click', () => {
+    //   editTemplate(index);
+    // });
     
     // 메뉴 버튼 클릭 이벤트 (향후 확장 가능)
     menuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       // 여기에 컨텍스트 메뉴 또는 추가 기능 구현 가능
-      console.log('메뉴 클릭:', index);
+      editTemplate(index);
     });
     
     listItem.appendChild(dragHandle);
@@ -125,7 +125,7 @@ function renderTemplates() {
 function initSortable() {
   new Sortable(userList, {
     animation: 150, // 애니메이션 속도(ms)
-    handle: '.drag-handle', // 드래그 핸들로 지정할 요소
+    handle: '.drag-handle, .list-item-content', // 드래그 핸들로 지정할 요소
     ghostClass: 'sortable-ghost', // 드래그 중인 아이템의 클래스
     chosenClass: 'sortable-chosen', // 선택된 아이템의 클래스
     dragClass: 'sortable-drag', // 드래그 중인 아이템의 클래스
@@ -140,8 +140,9 @@ function initSortable() {
         const movedItem = templates.splice(oldIndex, 1)[0];
         templates.splice(newIndex, 0, movedItem);
         
-        // 변경된 순서 저장
-        saveTemplatesData();
+        saveTemplatesData(); //변경된 순서 저장
+
+        renderTemplates(); //렌더링 업데이트
       }
     }
   });
