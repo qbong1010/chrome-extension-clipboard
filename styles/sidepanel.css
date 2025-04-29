@@ -182,7 +182,7 @@ body {
   background-color: var(--md-sys-color-surface-variant);
 }
 
-/* FAB (새 템플릿 버튼) */
+/* FAB (후원하기 버튼) */
 .md3-fab {
   position: fixed;
   bottom: 24px;
@@ -192,18 +192,18 @@ body {
   padding: 16px 24px;
   border-radius: 16px;
   border: none;
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
+  background-color: #ffeb33;  /* 카카오톡 노란색 */
+  color: #191919;  /* 어두운 글자색으로 변경 */
   box-shadow: var(--md-elevation-level3);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 1000;
 }
 
 .md3-fab:hover {
   box-shadow: var(--md-elevation-level2);
-  background-color: var(--md-sys-color-primary);
+  background-color: #ffeb33;
   opacity: 0.9;
 }
 
@@ -311,4 +311,40 @@ body {
 .md3-filled-button:hover {
   background-color: var(--md-sys-color-primary);
   opacity: 0.9;
+}
+
+/* 후원 다이얼로그 스타일 */
+.donate-text {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.donate-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.donate-qr {
+  width: 100%;
+  max-width: 250px;
+  height: auto;
+  object-fit: contain;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* 후원 모달창 크기 조정 */
+#donateQrDlg {
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 300px;
+}
+
+#donateQrDlg .dialog-container {
+  padding: 16px;
+  box-sizing: border-box;
 }

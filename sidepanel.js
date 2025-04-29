@@ -6,6 +6,8 @@ const titleInput = document.getElementById('titleInput');
 const bodyInput = document.getElementById('bodyInput');
 const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
+const donateQrDlg = document.getElementById('donateQrDlg');
+const closeDonateBtn = document.getElementById('closeDonateBtn');
 
 // 현재 편집 중인 템플릿 아이템의 인덱스 (새 아이템일 경우 null)
 let editingIndex = null;
@@ -226,7 +228,6 @@ navItems.forEach((item, index) => {
 
 
 // 이벤트 리스너
-addBtn.addEventListener('click', addTemplate);
 saveBtn.addEventListener('click', saveTemplate);
 cancelBtn.addEventListener('click', () => {
   editDlg.close('cancel');
@@ -238,6 +239,17 @@ document.getElementById('templateForm').addEventListener('submit', (e) => {
   if (titleInput.value.trim() && bodyInput.value.trim()) {
     editDlg.close('save');
   }
+});
+
+// 후원하기 모달 표시 함수
+function showDonateQR() {
+  donateQrDlg.showModal();
+}
+
+// 이벤트 리스너 변경
+addBtn.addEventListener('click', showDonateQR);
+closeDonateBtn.addEventListener('click', () => {
+  donateQrDlg.close();
 });
 
 // 초기 로드

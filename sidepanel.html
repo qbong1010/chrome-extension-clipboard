@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>Wow-Click Manager</title>
+  <title>Paste Right Manager</title>
   <link rel="stylesheet" href="styles/sidepanel.css">
   <!-- Material Symbols 아이콘 (MD3) -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -31,7 +31,7 @@
    <!-- 템플릿 기본 화면 -->
   <div class="content-area" id="templateManagerView">
     <header class="md3-header">
-      <h3>🗂️ 템플릿 관리</h3>
+      <h3>🗂️ 템플릿 관리 by Bong</h3>
     </header>
 
     <div class="md3-surface">
@@ -62,8 +62,8 @@
       </ul>
 
       <button id="addBtn" class="md3-fab">
-        <span class="material-symbols-rounded">add</span>
-        <span class="fab-label">새 템플릿</span>
+        <span class="material-symbols-rounded">favorite</span>
+        <span class="fab-label">후원하기</span>
       </button>
     </div>
   </div>
@@ -71,7 +71,7 @@
   <!-- 설정 화면: 처음에는 display:none으로 숨겨둠 -->
   <div class="content-area" id="settingsView" style="display: none;">
   <header class="md3-header">
-    <h3>⚙️ 설정</h3>
+    <h3>⚙️ 설정 (아직 개선중)</h3>
   </header>
   <div class="md3-surface" style="padding: 16px;">
     <section>
@@ -132,6 +132,22 @@
       <form id="templateForm" method="dialog">
         <input type="hidden" name="dialogResult" value="save">
       </form>
+    </div>
+  </dialog>
+
+  <!-- 후원하기 QR 코드 모달 다이얼로그 -->
+  <dialog id="donateQrDlg" class="md3-dialog">
+    <div class="dialog-container">
+      <h4 class="dialog-title">커피한잔 후원하기</h4>
+      <div class="dialog-content">
+        <p class="donate-text">프로그램이 유용하셨다면 <br>추후 업데이트를 기대해주세요!<br> 후원해주시면 더 빨라질지도?</p>
+        <div class="donate-image-container">
+          <img id="qrImage" src="./images/donate_qr.jpg" alt="후원 QR 코드" class="donate-qr">
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="closeDonateBtn" class="md3-filled-button">닫기</button>
+      </div>
     </div>
   </dialog>
 

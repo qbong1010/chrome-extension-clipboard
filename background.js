@@ -126,11 +126,12 @@ async function seedIfEmpty() {
     id: 'official_02',
     title: '월간공정보고',
     body: ' - 계획 85.5%, 실적 76.3%(계획대비 89.3%)\n - 지연사유 : ○○군 토지이용계획 확정지연(23년 3월까지 확정목표)\n - 만회대책 : ○○월 심의 상정 시 만회'  
-    }
+    },
     {
       id: 'official_03',
       title: '출장정산',
       body: ' - 남양주도시정비기본계획 출장건 / 자차이용\n - 부시장 보고 조속추진 의견 등'  
+    }
   ];
   
   await chrome.storage.local.set({
