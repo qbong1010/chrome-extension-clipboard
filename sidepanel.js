@@ -73,14 +73,20 @@ function renderTemplates() {
     listItem.setAttribute('draggable', 'true');
     listItem.setAttribute('data-index', index);
     
-    const dragHandle = document.createElement('div');
-    dragHandle.className = 'drag-handle';
+    const clipboardBtn = document.createElement('div');
+    clipboardBtn.className = 'clipboard-copy';
     
-    const dragIcon = document.createElement('span');
-    dragIcon.className = 'material-symbols-rounded';
-    dragIcon.textContent = 'drag_indicator';
+    const clipboardIcon = document.createElement('span');
+    clipboardIcon.className = 'material-symbols-rounded';
+    clipboardIcon.textContent = 'content_copy';
     
-    dragHandle.appendChild(dragIcon);
+    clipboardBtn.appendChild(clipboardIcon);
+    
+    // 클립보드 복사 기능 추가
+    clipboardBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      copyToClipboard(template.body);
+    });
     
     const content = document.createElement('div');
     content.className = 'list-item-content';
@@ -100,19 +106,13 @@ function renderTemplates() {
     
     menuBtn.appendChild(menuIcon);
     
-    // 클릭 이벤트: 템플릿 편집
-    // content.addEventListener('click', () => {
-    //   editTemplate(index);
-    // });
-    
-    // 메뉴 버튼 클릭 이벤트 (향후 확장 가능)
+    // 메뉴 버튼 클릭 이벤트
     menuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      // 여기에 컨텍스트 메뉴 또는 추가 기능 구현 가능
       editTemplate(index);
     });
     
-    listItem.appendChild(dragHandle);
+    listItem.appendChild(clipboardBtn);
     listItem.appendChild(content);
     listItem.appendChild(menuBtn);
     
@@ -123,28 +123,68 @@ function renderTemplates() {
   initSortable();
 }
 
-// Sortable.js 초기화 함수
+// 클립보드에 복사하는 함수
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      showToast('클립보드에 내용이 복사되었습니다.');
+    })
+    .catch(err => {
+      console.error('클립보드 복사 실패:', err);
+    });
+}
+
+// 토스트 메시지 표시 함수
+function showToast(message) {
+  // 기존 토스트가 있으면 제거
+  const existingToast = document.getElementById('toast');
+  if (existingToast) {
+    document.body.removeChild(existingToast);
+  }
+  
+  // 새 토스트 생성
+  const toast = document.createElement('div');
+  toast.id = 'toast';
+  toast.className = 'md3-toast';
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  // 애니메이션 효과로 표시
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+  
+  // 2초 후 사라짐
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (document.body.contains(toast)) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  }, 2000);
+}
+
+// Sortable.js 초기화 함수 수정
 function initSortable() {
   new Sortable(userList, {
-    animation: 150, // 애니메이션 속도(ms)
-    handle: '.drag-handle, .list-item-content', // 드래그 핸들로 지정할 요소
-    ghostClass: 'sortable-ghost', // 드래그 중인 아이템의 클래스
-    chosenClass: 'sortable-chosen', // 선택된 아이템의 클래스
-    dragClass: 'sortable-drag', // 드래그 중인 아이템의 클래스
+    animation: 150,
+    handle: '.list-item-content', // drag-handle 제거하고 list-item-content만 드래그 핸들로 지정
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
     
-    // 순서 변경 이벤트 핸들러
     onEnd: function(evt) {
       const oldIndex = evt.oldIndex;
       const newIndex = evt.newIndex;
       
       if (oldIndex !== newIndex) {
-        // 배열에서 아이템 순서 변경
         const movedItem = templates.splice(oldIndex, 1)[0];
         templates.splice(newIndex, 0, movedItem);
         
-        saveTemplatesData(); //변경된 순서 저장
-
-        renderTemplates(); //렌더링 업데이트
+        saveTemplatesData();
+        renderTemplates();
       }
     }
   });

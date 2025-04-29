@@ -348,3 +348,41 @@ body {
   padding: 16px;
   box-sizing: border-box;
 }
+
+/* 클립보드 아이콘 스타일 */
+.clipboard-copy {
+  display: flex;
+  align-items: center;
+  padding-right: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+}
+
+.clipboard-copy:hover {
+  color: var(--md-sys-color-primary);
+}
+
+/* 토스트 메시지 스타일 */
+.md3-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  width: 200px;
+  max-width: 300px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 12px;
+  box-shadow: var(--md-elevation-level2);
+  z-index: 1000;
+  opacity: 0;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.md3-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}

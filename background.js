@@ -86,29 +86,54 @@ async function rebuildMenus() {
 
 /* ───────── 탭 컨텍스트: 텍스트 삽입 ───────── */
 function insertText(text) {
-  const el = document.activeElement;
-  const isInput = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
-  const isEditable = el?.isContentEditable;
+  // iframe 내부에서 실행되는 코드
+  function insertTextIntoElement(text) {
+    const el = document.activeElement;
+    const isInput = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+    const isEditable = el?.isContentEditable;
 
-  if (!isInput && !isEditable) {
-    alert('여기에 템플릿을 삽입할 수 없습니다.');
-    return;
+    if (!isInput && !isEditable) {
+      return false; // 삽입 실패
+    }
+
+    if (isInput) {
+      const start = el.selectionStart ?? el.value.length;
+      const end   = el.selectionEnd   ?? el.value.length;
+      el.value = el.value.slice(0, start) + text + el.value.slice(end);
+      el.selectionStart = el.selectionEnd = start + text.length;
+    } else {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) { el.innerText += text; return true; }
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createTextNode(text));
+      range.collapse(false);
+    }
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    return true; // 삽입 성공
   }
 
-  if (isInput) {
-    const start = el.selectionStart ?? el.value.length;
-    const end   = el.selectionEnd   ?? el.value.length;
-    el.value = el.value.slice(0, start) + text + el.value.slice(end);
-    el.selectionStart = el.selectionEnd = start + text.length;
-  } else {
-    const sel = window.getSelection();
-    if (!sel.rangeCount) { el.innerText += text; return; }
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-    range.insertNode(document.createTextNode(text));
-    range.collapse(false);
+  // 먼저 현재 문서에서 시도
+  const insertResult = insertTextIntoElement(text);
+  if (insertResult) return;
+
+  // 실패했다면 iframe들에서 시도
+  const frames = document.querySelectorAll('iframe');
+  let inserted = false;
+  
+  for (const frame of frames) {
+    try {
+      inserted = frame.contentWindow.document.execCommand('insertText', false, text);
+      if (inserted) break;
+    } catch (e) {
+      console.log('iframe 접근 실패:', e);
+    }
   }
-  el.dispatchEvent(new Event('input', { bubbles: true }));
+
+  // 여전히 실패했다면 사용자에게 알림
+  if (!inserted) {
+    alert('여기에 템플릿을 삽입할 수 없습니다. 텍스트 영역을 클릭한 후 다시 시도해주세요.');
+  }
 }
 
 /* ───────── 초기 샘플 데이터 ───────── */
