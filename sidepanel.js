@@ -66,7 +66,7 @@ async function saveTemplatesData() {
 // 템플릿 목록 렌더링 함수
 function renderTemplates() {
   userList.innerHTML = '';
-  
+
   templates.forEach((template, index) => {
     const listItem = document.createElement('li');
     listItem.className = 'md3-list-item';
@@ -105,17 +105,28 @@ function renderTemplates() {
     menuIcon.textContent = 'more_vert';
     
     menuBtn.appendChild(menuIcon);
-    
+
     // 메뉴 버튼 클릭 이벤트
     menuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       editTemplate(index);
     });
-    
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'template-body';
+    bodyDiv.textContent = template.body;
+
     listItem.appendChild(clipboardBtn);
     listItem.appendChild(content);
     listItem.appendChild(menuBtn);
-    
+    listItem.appendChild(bodyDiv);
+
+    // 아코디언 토글
+    listItem.addEventListener('click', (e) => {
+      if (e.target.closest('.clipboard-copy') || e.target.closest('.md3-icon-button')) return;
+      listItem.classList.toggle('open');
+    });
+
     userList.appendChild(listItem);
   });
   
