@@ -1,0 +1,9 @@
+{
+  "name": "chrome-extension-clipboard",
+  "version": "1.0.0",
+  "description": "Clipboard manager Chrome extension",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
