@@ -23,15 +23,15 @@
     <div class="nav-item" id="navSearch">
       <span class="material-symbols-rounded">search</span>
     </div>
-    <div class="nav-item" id="navAdd">
-      <span class="material-symbols-rounded">add</span>
-    </div>
   </nav>
 
    <!-- 템플릿 기본 화면 -->
   <div class="content-area" id="templateManagerView">
     <header class="md3-header">
       <h3>🗂️ 템플릿 관리 by Bong</h3>
+      <button id="addTemplateBtn" class="md3-icon-button header-add-btn" title="템플릿 추가">
+        <span class="material-symbols-rounded">add</span>
+      </button>
     </header>
 
     <div class="md3-surface">
@@ -109,6 +109,110 @@
       </p>
     </section>
   </div>
+  </div>
+
+  <!-- 건축물대장 조회 화면 -->
+  <div class="content-area" id="buildingSearchView" style="display: none;">
+    <header class="md3-header">
+      <h3>🏢 건축물대장 조회</h3>
+    </header>
+
+    <div class="md3-surface" style="padding: 16px;">
+      <!-- 주소로 코드 찾기 섹션 -->
+      <div class="address-finder-section">
+        <div class="finder-header" id="finderHeader">
+          <span class="material-symbols-rounded">location_on</span>
+          <h4>주소로 코드 찾기</h4>
+          <span class="material-symbols-rounded toggle-icon" id="finderToggle">expand_more</span>
+        </div>
+        <div class="finder-content" id="finderContent">
+          <div class="md3-field">
+            <label for="addressSearchInput">주소 검색</label>
+            <input id="addressSearchInput" class="md3-input" type="text" placeholder="예: 경기도 남양주시 금곡동">
+          </div>
+          <button id="addressSearchBtn" class="md3-filled-button" style="width: 100%;">
+            <span class="material-symbols-rounded">search</span>
+            <span>검색</span>
+          </button>
+          
+          <!-- 검색 결과 목록 -->
+          <div id="addressSearchResults" class="search-results" style="display: none;">
+            <div class="results-header">
+              <span class="results-count" id="resultsCount">0개 결과</span>
+            </div>
+            <ul id="addressResultsList" class="results-list">
+              <!-- 동적으로 생성됨 -->
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 직접 코드 입력 섹션 -->
+      <div class="search-section">
+        <div class="section-divider">
+          <span>또는 직접 입력</span>
+        </div>
+        <div class="md3-field">
+          <label for="sigunguInput">시군구코드 (5자리)</label>
+          <input id="sigunguInput" class="md3-input" type="text" placeholder="예: 41360" maxlength="5">
+        </div>
+        <div class="md3-field">
+          <label for="bjdongInput">법정동코드 (5자리)</label>
+          <input id="bjdongInput" class="md3-input" type="text" placeholder="예: 10300" maxlength="5">
+        </div>
+        <div class="md3-field">
+          <label for="platGbInput">대지구분코드 (1자리: 0=대지, 1=산, 2=블록)</label>
+          <input id="platGbInput" class="md3-input" type="text" placeholder="예: 0" maxlength="1" value="0">
+        </div>
+        <div class="input-row">
+          <div class="md3-field" style="flex: 1;">
+            <label for="bunInput">본번 (4자리)</label>
+            <input id="bunInput" class="md3-input" type="text" placeholder="예: 0685" maxlength="4">
+          </div>
+          <div class="md3-field" style="flex: 1;">
+            <label for="jiInput">부번 (4자리)</label>
+            <input id="jiInput" class="md3-input" type="text" placeholder="예: 0017" maxlength="4" value="0000">
+          </div>
+        </div>
+        <div class="button-row">
+          <button id="searchBtn" class="md3-filled-button">
+            <span class="material-symbols-rounded">search</span>
+            <span>조회</span>
+          </button>
+          <button id="exampleBtn" class="md3-text-button" style="margin-left: 10px;">
+            <span>예제 입력</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 로딩 인디케이터 -->
+      <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <p>조회 중...</p>
+      </div>
+
+      <!-- 에러 메시지 -->
+      <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+      <!-- 결과 영역 -->
+      <div id="resultSection" style="display: none;">
+        <!-- 뷰 전환 버튼 -->
+        <div class="view-toggle">
+          <button id="simpleViewBtn" class="toggle-btn active">간략 보기</button>
+          <button id="detailViewBtn" class="toggle-btn">상세 보기</button>
+        </div>
+
+        <!-- 간략 보기 카드 -->
+        <div id="simpleView" class="result-card">
+          <!-- 동적으로 생성됨 -->
+        </div>
+
+        <!-- 상세 보기 테이블 -->
+        <div id="detailView" class="result-table" style="display: none;">
+          <!-- 동적으로 생성됨 -->
+        </div>
+      </div>
+    </div>
   </div>
   
    <!-- 머티리얼 디자인 3 모달 다이얼로그 -->
