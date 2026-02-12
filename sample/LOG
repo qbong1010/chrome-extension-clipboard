@@ -1,0 +1,73 @@
+2026/02/12-14:26:55.571 5af0 Reusing MANIFEST C:\Users\Joey\AppData\Local\Google\Chrome\User Data\Default\Local Storage\leveldb/MANIFEST-000001
+2026/02/12-14:26:55.578 5af0 Recovering log #3031
+2026/02/12-14:26:55.582 5af0 Reusing old log C:\Users\Joey\AppData\Local\Google\Chrome\User Data\Default\Local Storage\leveldb/003031.log 
+2026/02/12-15:10:45.509 5b00 Level-0 table #3035: started
+2026/02/12-15:10:45.514 5b00 Level-0 table #3035: 69066 bytes OK
+2026/02/12-15:10:45.516 5b00 Delete type=0 #3031
+2026/02/12-15:10:45.517 5b00 Compacting 4@0 + 3@1 files
+2026/02/12-15:10:45.547 5b00 Generated table #3036@0: 21117 keys, 2349903 bytes
+2026/02/12-15:10:45.569 5b00 Generated table #3037@0: 6423 keys, 2148432 bytes
+2026/02/12-15:10:45.585 5b00 Generated table #3038@0: 1186 keys, 794390 bytes
+2026/02/12-15:10:45.585 5b00 Compacted 4@0 + 3@1 files => 5292725 bytes
+2026/02/12-15:10:45.586 5b00 compacted to: files[ 0 3 1 0 0 0 0 ]
+2026/02/12-15:10:45.587 5b00 Delete type=2 #3024
+2026/02/12-15:10:45.587 5b00 Delete type=2 #3025
+2026/02/12-15:10:45.587 5b00 Delete type=2 #3026
+2026/02/12-15:10:45.587 5b00 Delete type=2 #3028
+2026/02/12-15:10:45.587 5b00 Delete type=2 #3030
+2026/02/12-15:10:45.587 5b00 Delete type=2 #3032
+2026/02/12-15:10:45.587 5b00 Delete type=2 #3035
+2026/02/12-15:11:39.752 5b00 Level-0 table #3040: started
+2026/02/12-15:11:39.763 5b00 Level-0 table #3040: 89407 bytes OK
+2026/02/12-15:11:39.765 5b00 Delete type=0 #3034
+2026/02/12-15:21:57.351 5b00 Level-0 table #3042: started
+2026/02/12-15:21:57.356 5b00 Level-0 table #3042: 56360 bytes OK
+2026/02/12-15:21:57.358 5b00 Delete type=0 #3039
+2026/02/12-15:22:08.459 5af0 Level-0 table #3044: started
+2026/02/12-15:22:08.473 5af0 Level-0 table #3044: 14272 bytes OK
+2026/02/12-15:22:08.475 5af0 Delete type=0 #3041
+2026/02/12-15:22:37.012 5b00 Level-0 table #3046: started
+2026/02/12-15:22:37.019 5b00 Level-0 table #3046: 67810 bytes OK
+2026/02/12-15:22:37.021 5b00 Delete type=0 #3043
+2026/02/12-15:22:37.022 5b00 Compacting 4@0 + 2@1 files
+2026/02/12-15:22:37.053 5b00 Generated table #3047@0: 21151 keys, 2353119 bytes
+2026/02/12-15:22:37.081 5b00 Generated table #3048@0: 6425 keys, 2148458 bytes
+2026/02/12-15:22:37.081 5b00 Compacted 4@0 + 2@1 files => 4501577 bytes
+2026/02/12-15:22:37.083 5b00 compacted to: files[ 0 3 1 0 0 0 0 ]
+2026/02/12-15:22:37.084 5b00 Delete type=2 #3036
+2026/02/12-15:22:37.084 5b00 Delete type=2 #3037
+2026/02/12-15:22:37.084 5b00 Delete type=2 #3040
+2026/02/12-15:22:37.084 5b00 Delete type=2 #3042
+2026/02/12-15:22:37.084 5b00 Delete type=2 #3044
+2026/02/12-15:22:37.084 5b00 Delete type=2 #3046
+2026/02/12-15:49:17.344 5b00 Level-0 table #3050: started
+2026/02/12-15:49:17.351 5b00 Level-0 table #3050: 67725 bytes OK
+2026/02/12-15:49:17.353 5b00 Delete type=0 #3045
+2026/02/12-15:52:57.342 5b00 Level-0 table #3052: started
+2026/02/12-15:52:57.356 5b00 Level-0 table #3052: 15618 bytes OK
+2026/02/12-15:52:57.358 5b00 Delete type=0 #3049
+2026/02/12-15:53:27.897 5af0 Level-0 table #3054: started
+2026/02/12-15:53:27.915 5af0 Level-0 table #3054: 68122 bytes OK
+2026/02/12-15:53:27.919 5af0 Delete type=0 #3051
+2026/02/12-16:03:17.144 5b00 Level-0 table #3056: started
+2026/02/12-16:03:17.158 5b00 Level-0 table #3056: 21586 bytes OK
+2026/02/12-16:03:17.160 5b00 Delete type=0 #3053
+2026/02/12-16:03:17.160 5b00 Compacting 4@0 + 3@1 files
+2026/02/12-16:03:17.190 5b00 Generated table #3057@0: 21238 keys, 2354943 bytes
+2026/02/12-16:03:17.215 5b00 Generated table #3058@0: 6483 keys, 2153364 bytes
+2026/02/12-16:03:17.228 5b00 Generated table #3059@0: 1190 keys, 794470 bytes
+2026/02/12-16:03:17.228 5b00 Compacted 4@0 + 3@1 files => 5302777 bytes
+2026/02/12-16:03:17.230 5b00 compacted to: files[ 0 3 1 0 0 0 0 ]
+2026/02/12-16:03:17.230 5b00 Delete type=2 #3038
+2026/02/12-16:03:17.230 5b00 Delete type=2 #3047
+2026/02/12-16:03:17.230 5b00 Delete type=2 #3048
+2026/02/12-16:03:17.230 5b00 Delete type=2 #3050
+2026/02/12-16:03:17.230 5b00 Delete type=2 #3052
+2026/02/12-16:03:17.230 5b00 Delete type=2 #3054
+2026/02/12-16:03:17.230 5b00 Delete type=2 #3056
+2026/02/12-16:38:53.547 5af0 Level-0 table #3061: started
+2026/02/12-16:38:53.561 5af0 Level-0 table #3061: 31696 bytes OK
+2026/02/12-16:38:53.563 5af0 Delete type=0 #3055
+2026/02/12-17:39:21.443 5b00 Level-0 table #3063: started
+2026/02/12-17:39:21.448 5b00 Level-0 table #3063: 14728 bytes OK
+2026/02/12-17:39:21.451 5b00 Delete type=0 #3060

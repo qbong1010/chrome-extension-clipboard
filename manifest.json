@@ -38,7 +38,7 @@
       "matches": ["<all_urls>"]
     },
     {
-      "resources": ["address-codes.json"],
+      "resources": ["address-codes.json", "default-templates.json"],
       "matches": ["<all_urls>"]
     }
   ],

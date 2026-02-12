@@ -1,0 +1,110 @@
+2026/02/12-09:07:46.253 4e08 Reusing MANIFEST C:\Users\Joey\AppData\Local\Google\Chrome\User Data\Default\Local Storage\leveldb/MANIFEST-000001
+2026/02/12-09:07:46.259 4e08 Recovering log #2979
+2026/02/12-09:07:46.263 4e08 Reusing old log C:\Users\Joey\AppData\Local\Google\Chrome\User Data\Default\Local Storage\leveldb/002979.log 
+2026/02/12-09:38:58.206 224c Level-0 table #2985: started
+2026/02/12-09:38:58.221 224c Level-0 table #2985: 39497 bytes OK
+2026/02/12-09:38:58.223 224c Delete type=0 #2979
+2026/02/12-09:46:58.314 224c Level-0 table #2987: started
+2026/02/12-09:46:58.326 224c Level-0 table #2987: 52935 bytes OK
+2026/02/12-09:46:58.328 224c Delete type=0 #2984
+2026/02/12-09:48:57.672 224c Level-0 table #2989: started
+2026/02/12-09:48:57.678 224c Level-0 table #2989: 61359 bytes OK
+2026/02/12-09:48:57.681 224c Delete type=0 #2986
+2026/02/12-09:56:13.977 224c Level-0 table #2991: started
+2026/02/12-09:56:13.989 224c Level-0 table #2991: 19183 bytes OK
+2026/02/12-09:56:13.991 224c Delete type=0 #2988
+2026/02/12-09:56:13.992 224c Compacting 4@0 + 2@1 files
+2026/02/12-09:56:14.020 224c Generated table #2992@0: 20262 keys, 2318238 bytes
+2026/02/12-09:56:14.045 224c Generated table #2993@0: 6102 keys, 2136844 bytes
+2026/02/12-09:56:14.045 224c Compacted 4@0 + 2@1 files => 4455082 bytes
+2026/02/12-09:56:14.046 224c compacted to: files[ 0 3 1 0 0 0 0 ]
+2026/02/12-09:56:14.047 224c Delete type=2 #2981
+2026/02/12-09:56:14.047 224c Delete type=2 #2982
+2026/02/12-09:56:14.047 224c Delete type=2 #2985
+2026/02/12-09:56:14.048 224c Delete type=2 #2987
+2026/02/12-09:56:14.048 224c Delete type=2 #2989
+2026/02/12-09:56:14.048 224c Delete type=2 #2991
+2026/02/12-10:02:55.833 4e08 Level-0 table #2995: started
+2026/02/12-10:02:55.847 4e08 Level-0 table #2995: 60693 bytes OK
+2026/02/12-10:02:55.850 4e08 Delete type=0 #2990
+2026/02/12-10:54:10.639 224c Level-0 table #2997: started
+2026/02/12-10:54:10.651 224c Level-0 table #2997: 20920 bytes OK
+2026/02/12-10:54:10.653 224c Delete type=0 #2994
+2026/02/12-12:49:07.236 224c Level-0 table #2999: started
+2026/02/12-12:49:07.242 224c Level-0 table #2999: 15488 bytes OK
+2026/02/12-12:49:07.244 224c Delete type=0 #2996
+2026/02/12-13:05:50.368 224c Level-0 table #3001: started
+2026/02/12-13:05:50.375 224c Level-0 table #3001: 20464 bytes OK
+2026/02/12-13:05:50.377 224c Delete type=0 #2998
+2026/02/12-13:05:50.377 224c Compacting 4@0 + 3@1 files
+2026/02/12-13:05:50.411 224c Generated table #3002@0: 20758 keys, 2334401 bytes
+2026/02/12-13:05:50.444 224c Generated table #3003@0: 6237 keys, 2142358 bytes
+2026/02/12-13:05:50.463 224c Generated table #3004@0: 1169 keys, 794529 bytes
+2026/02/12-13:05:50.463 224c Compacted 4@0 + 3@1 files => 5271288 bytes
+2026/02/12-13:05:50.465 224c compacted to: files[ 0 3 1 0 0 0 0 ]
+2026/02/12-13:05:50.466 224c Delete type=2 #2952
+2026/02/12-13:05:50.466 224c Delete type=2 #2992
+2026/02/12-13:05:50.466 224c Delete type=2 #2993
+2026/02/12-13:05:50.466 224c Delete type=2 #2995
+2026/02/12-13:05:50.466 224c Delete type=2 #2997
+2026/02/12-13:05:50.467 224c Delete type=2 #2999
+2026/02/12-13:05:50.467 224c Delete type=2 #3001
+2026/02/12-13:18:53.885 224c Level-0 table #3006: started
+2026/02/12-13:18:53.902 224c Level-0 table #3006: 12556 bytes OK
+2026/02/12-13:18:53.905 224c Delete type=0 #3000
+2026/02/12-13:22:49.619 224c Level-0 table #3008: started
+2026/02/12-13:22:49.624 224c Level-0 table #3008: 20714 bytes OK
+2026/02/12-13:22:49.626 224c Delete type=0 #3005
+2026/02/12-13:31:49.835 224c Level-0 table #3010: started
+2026/02/12-13:31:49.841 224c Level-0 table #3010: 60066 bytes OK
+2026/02/12-13:31:49.843 224c Delete type=0 #3007
+2026/02/12-13:32:01.688 224c Level-0 table #3012: started
+2026/02/12-13:32:01.692 224c Level-0 table #3012: 16307 bytes OK
+2026/02/12-13:32:01.694 224c Delete type=0 #3009
+2026/02/12-13:32:01.695 224c Compacting 4@0 + 3@1 files
+2026/02/12-13:32:01.722 224c Generated table #3013@0: 21021 keys, 2348120 bytes
+2026/02/12-13:32:01.744 224c Generated table #3014@0: 6376 keys, 2148373 bytes
+2026/02/12-13:32:01.757 224c Generated table #3015@0: 1171 keys, 794550 bytes
+2026/02/12-13:32:01.757 224c Compacted 4@0 + 3@1 files => 5291043 bytes
+2026/02/12-13:32:01.759 224c compacted to: files[ 0 3 1 0 0 0 0 ]
+2026/02/12-13:32:01.759 224c Delete type=2 #3002
+2026/02/12-13:32:01.759 224c Delete type=2 #3003
+2026/02/12-13:32:01.759 224c Delete type=2 #3004
+2026/02/12-13:32:01.759 224c Delete type=2 #3006
+2026/02/12-13:32:01.759 224c Delete type=2 #3008
+2026/02/12-13:32:01.759 224c Delete type=2 #3010
+2026/02/12-13:32:01.760 224c Delete type=2 #3012
+2026/02/12-13:32:24.257 224c Level-0 table #3017: started
+2026/02/12-13:32:24.268 224c Level-0 table #3017: 14027 bytes OK
+2026/02/12-13:32:24.270 224c Delete type=0 #3011
+2026/02/12-13:33:06.878 224c Level-0 table #3019: started
+2026/02/12-13:33:06.892 224c Level-0 table #3019: 61401 bytes OK
+2026/02/12-13:33:06.894 224c Delete type=0 #3016
+2026/02/12-13:41:41.411 224c Level-0 table #3021: started
+2026/02/12-13:41:41.416 224c Level-0 table #3021: 63030 bytes OK
+2026/02/12-13:41:41.418 224c Delete type=0 #3018
+2026/02/12-13:41:46.816 224c Level-0 table #3023: started
+2026/02/12-13:41:46.821 224c Level-0 table #3023: 16190 bytes OK
+2026/02/12-13:41:46.823 224c Delete type=0 #3020
+2026/02/12-13:41:46.824 224c Compacting 4@0 + 3@1 files
+2026/02/12-13:41:46.853 224c Generated table #3024@0: 21047 keys, 2349266 bytes
+2026/02/12-13:41:46.877 224c Generated table #3025@0: 6391 keys, 2148896 bytes
+2026/02/12-13:41:46.890 224c Generated table #3026@0: 1173 keys, 794492 bytes
+2026/02/12-13:41:46.890 224c Compacted 4@0 + 3@1 files => 5292654 bytes
+2026/02/12-13:41:46.891 224c compacted to: files[ 0 3 1 0 0 0 0 ]
+2026/02/12-13:41:46.892 224c Delete type=2 #3013
+2026/02/12-13:41:46.892 224c Delete type=2 #3014
+2026/02/12-13:41:46.892 224c Delete type=2 #3015
+2026/02/12-13:41:46.892 224c Delete type=2 #3017
+2026/02/12-13:41:46.892 224c Delete type=2 #3019
+2026/02/12-13:41:46.892 224c Delete type=2 #3021
+2026/02/12-13:41:46.892 224c Delete type=2 #3023
+2026/02/12-13:42:13.497 224c Level-0 table #3028: started
+2026/02/12-13:42:13.509 224c Level-0 table #3028: 14346 bytes OK
+2026/02/12-13:42:13.511 224c Delete type=0 #3022
+2026/02/12-13:42:18.970 224c Level-0 table #3030: started
+2026/02/12-13:42:18.975 224c Level-0 table #3030: 61990 bytes OK
+2026/02/12-13:42:18.977 224c Delete type=0 #3027
+2026/02/12-13:50:07.421 4e08 Level-0 table #3032: started
+2026/02/12-13:50:07.427 4e08 Level-0 table #3032: 16401 bytes OK
+2026/02/12-13:50:07.430 4e08 Delete type=0 #3029
