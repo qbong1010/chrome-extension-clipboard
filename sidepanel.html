@@ -70,45 +70,61 @@
 
   <!-- 설정 화면: 처음에는 display:none으로 숨겨둠 -->
   <div class="content-area" id="settingsView" style="display: none;">
-  <header class="md3-header">
-    <h3>⚙️ 설정 (아직 개선중)</h3>
-  </header>
-  <div class="md3-surface" style="padding: 16px;">
-    <section>
-      <h4>일반</h4>
-      <!-- 테마 설정 -->
-      <label for="themeSelect">테마:</label>
-      <select id="themeSelect">
-        <option value="light">일반모드</option>
-        <option value="dark">나이트모드</option>
-        <option value="system">크롬창 세팅 반영</option>
-      </select>
-    </section>
-    <hr>
-    <section>
-      <h4>저장소</h4>
-      <!-- 저장소 타입 -->
-      <label for="storageTypeSelect">저장소 타입:</label>
-      <select id="storageTypeSelect">
-        <option value="local">로컬</option>
-        <option value="sync">동기화</option>
-      </select>
-      <p>동기화 저장소 사용량: <span id="syncUsage"></span> / <span id="syncQuota"></span></p>
-    </section>
-    <hr>
-    <section>
-      <h4>권한</h4>
-      <!-- 클립보드 권한 -->
-      <p>클립보드 쓰기:
-        <label><input type="radio" name="clipboardWrite" value="allow" checked>허가</label>
-        <label><input type="radio" name="clipboardWrite" value="deny">불허가</label>
-      </p>
-      <p>클립보드 읽기:
-        <label><input type="radio" name="clipboardRead" value="allow" checked>허가</label>
-        <label><input type="radio" name="clipboardRead" value="deny">불허가</label>
-      </p>
-    </section>
-  </div>
+    <header class="md3-header">
+      <h3>⚙️ 설정</h3>
+    </header>
+    <div class="md3-surface settings-surface">
+      <section class="settings-section">
+        <div class="settings-section-header">
+          <h4>일반</h4>
+          <p>저장 즉시 현재 패널에 적용됩니다.</p>
+        </div>
+        <div class="md3-field">
+          <label for="themeSelect">테마</label>
+          <select id="themeSelect" class="md3-select">
+            <option value="light">라이트</option>
+            <option value="dark">다크</option>
+            <option value="system">시스템 설정 따름</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <div class="settings-section-header">
+          <h4>저장소</h4>
+          <p>템플릿 저장 위치를 바꾸면 기존 데이터도 함께 이동합니다.</p>
+        </div>
+        <div class="md3-field">
+          <label for="storageTypeSelect">저장소 타입</label>
+          <select id="storageTypeSelect" class="md3-select">
+            <option value="local">로컬</option>
+            <option value="sync">동기화</option>
+          </select>
+        </div>
+        <p class="settings-inline-text">
+          동기화 저장소 사용량: <span id="syncUsage">0 B</span> / <span id="syncQuota">0 B</span>
+        </p>
+        <p class="settings-help-text">동기화 저장소는 용량이 작아서 템플릿이 많으면 전환이 거부될 수 있습니다.</p>
+      </section>
+
+      <section class="settings-section">
+        <div class="settings-section-header">
+          <h4>클립보드</h4>
+          <p>복사 버튼 동작 정책을 관리합니다.</p>
+        </div>
+        <div class="settings-radio-group">
+          <span class="settings-label">클립보드 쓰기</span>
+          <label><input type="radio" name="clipboardWrite" value="allow" checked>허용</label>
+          <label><input type="radio" name="clipboardWrite" value="deny">차단</label>
+        </div>
+        <div class="settings-radio-group settings-radio-group-disabled" aria-disabled="true">
+          <span class="settings-label">클립보드 읽기</span>
+          <label><input type="radio" name="clipboardRead" value="allow" disabled>허용</label>
+          <label><input type="radio" name="clipboardRead" value="deny" checked disabled>차단</label>
+        </div>
+        <p class="settings-help-text">읽기 기능은 아직 사용 중인 기능이 없어 이번 구현에서는 표시만 유지합니다.</p>
+      </section>
+    </div>
   </div>
 
   <!-- 건축물대장 조회 화면 -->

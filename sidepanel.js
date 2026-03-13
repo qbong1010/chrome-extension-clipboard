@@ -1,3 +1,15 @@
+import {
+  DEFAULT_SETTINGS,
+  getActiveTemplateStorageArea,
+  getExtensionSettings,
+  getSyncQuotaDetails,
+  getTemplatesFromStorage,
+  migrateTemplatesToStorageArea,
+  resolveAppliedTheme,
+  saveExtensionSettings,
+  saveTemplatesToStorage,
+} from "./storage-utils.js";
+
 // DOM 요소
 const userList = document.getElementById("userList");
 const addBtn = document.getElementById("addBtn");
@@ -16,17 +28,145 @@ let editingIndex = null;
 // 템플릿 데이터 저장용 변수
 let templates = [];
 
+let extensionSettings = { ...DEFAULT_SETTINGS };
+const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+const themeSelect = document.getElementById("themeSelect");
+const storageTypeSelect = document.getElementById("storageTypeSelect");
+const syncUsage = document.getElementById("syncUsage");
+const syncQuota = document.getElementById("syncQuota");
+const clipboardWriteRadios = document.querySelectorAll(
+  'input[name="clipboardWrite"]',
+);
+
+async function refreshMenus() {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage("refresh‑menus", (response) => {
+      console.log("메뉴 갱신 응답:", response);
+      resolve(response);
+    });
+  });
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function applyTheme() {
+  const theme = resolveAppliedTheme(extensionSettings.theme, systemThemeQuery.matches);
+  document.documentElement.dataset.theme = theme;
+}
+
+function syncSettingsControls() {
+  themeSelect.value = extensionSettings.theme;
+  storageTypeSelect.value = extensionSettings.templateStorageArea;
+
+  clipboardWriteRadios.forEach((radio) => {
+    radio.checked =
+      (extensionSettings.clipboardWriteEnabled && radio.value === "allow") ||
+      (!extensionSettings.clipboardWriteEnabled && radio.value === "deny");
+  });
+}
+
+async function updateSyncUsage() {
+  const [usedBytes, quotaDetails] = await Promise.all([
+    chrome.storage.sync.getBytesInUse(null),
+    Promise.resolve(getSyncQuotaDetails()),
+  ]);
+
+  syncUsage.textContent = formatBytes(usedBytes);
+  syncQuota.textContent = formatBytes(quotaDetails.totalBytes);
+}
+
+async function initializeSettings() {
+  extensionSettings = await getExtensionSettings();
+  syncSettingsControls();
+  applyTheme();
+  await updateSyncUsage();
+}
+
+async function handleThemeChange(event) {
+  extensionSettings = await saveExtensionSettings({ theme: event.target.value });
+  applyTheme();
+  showToast("테마 설정이 저장되었습니다.");
+}
+
+async function handleClipboardWriteChange(event) {
+  extensionSettings = await saveExtensionSettings({
+    clipboardWriteEnabled: event.target.value === "allow",
+  });
+  syncSettingsControls();
+  showToast(
+    extensionSettings.clipboardWriteEnabled
+      ? "클립보드 복사가 다시 허용되었습니다."
+      : "클립보드 복사가 차단되었습니다.",
+  );
+}
+
+async function handleStorageTypeChange(event) {
+  const nextStorageType = event.target.value;
+  const previousStorageType = extensionSettings.templateStorageArea;
+
+  if (nextStorageType === previousStorageType) {
+    return;
+  }
+
+  storageTypeSelect.disabled = true;
+
+  try {
+    const result = await migrateTemplatesToStorageArea(nextStorageType);
+    extensionSettings = result.settings;
+    templates = result.migratedTemplates;
+    renderTemplates();
+    await updateSyncUsage();
+    await refreshMenus();
+    showToast(
+      nextStorageType === "sync"
+        ? "템플릿 저장소를 동기화로 변경했습니다."
+        : "템플릿 저장소를 로컬로 변경했습니다.",
+    );
+  } catch (error) {
+    storageTypeSelect.value = previousStorageType;
+    showToast(error.message || "저장소 전환에 실패했습니다.");
+  } finally {
+    storageTypeSelect.disabled = false;
+  }
+}
+
+function bindSettingsEvents() {
+  themeSelect.addEventListener("change", handleThemeChange);
+  storageTypeSelect.addEventListener("change", handleStorageTypeChange);
+  clipboardWriteRadios.forEach((radio) => {
+    radio.addEventListener("change", handleClipboardWriteChange);
+  });
+
+  systemThemeQuery.addEventListener("change", () => {
+    if (extensionSettings.theme === "system") {
+      applyTheme();
+    }
+  });
+}
+
 // 초기 로드 함수
 async function loadTemplates() {
   try {
-    const { userTemplates = [] } = await chrome.storage.local.get([
-      "userTemplates",
-    ]);
-    console.log("로드된 템플릿:", userTemplates);
+    const storageArea = await getActiveTemplateStorageArea();
+    const userTemplates = await getTemplatesFromStorage(storageArea);
+    console.log("로드된 템플릿:", userTemplates, storageArea);
+    let hasGeneratedMissingIds = false;
 
     // ID가 없는 템플릿에 ID 추가
     templates = userTemplates.map((template) => {
       if (!template.id) {
+        hasGeneratedMissingIds = true;
         return {
           ...template,
           id:
@@ -35,6 +175,10 @@ async function loadTemplates() {
       }
       return template;
     });
+
+    if (hasGeneratedMissingIds) {
+      await saveTemplatesData();
+    }
 
     // 템플릿이 비어있으면 기본 템플릿 추가
     if (templates.length === 0) {
@@ -68,19 +212,12 @@ async function loadTemplates() {
 
 // 템플릿 데이터 저장 함수
 async function saveTemplatesData() {
-  try {
-    console.log("저장할 템플릿:", templates);
+  console.log("저장할 템플릿:", templates);
 
-    // userTemplates 저장
-    await chrome.storage.local.set({ userTemplates: templates });
-
-    // 백그라운드에 메뉴 갱신 요청
-    chrome.runtime.sendMessage("refresh‑menus", (response) => {
-      console.log("메뉴 갱신 응답:", response);
-    });
-  } catch (err) {
-    console.error("템플릿 저장 오류:", err);
-  }
+  const storageArea = await getActiveTemplateStorageArea();
+  await saveTemplatesToStorage(storageArea, templates);
+  await updateSyncUsage();
+  await refreshMenus();
 }
 
 // 템플릿 목록 렌더링 함수
@@ -145,6 +282,11 @@ function renderTemplates() {
 
 // 클립보드에 복사하는 함수
 function copyToClipboard(text) {
+  if (!extensionSettings.clipboardWriteEnabled) {
+    showToast("설정에서 클립보드 복사가 차단되어 있습니다.");
+    return;
+  }
+
   navigator.clipboard
     .writeText(text)
     .then(() => {
@@ -201,11 +343,20 @@ function initSortable() {
       const newIndex = evt.newIndex;
 
       if (oldIndex !== newIndex) {
+        const previousTemplates = templates.map((template) => ({ ...template }));
         const movedItem = templates.splice(oldIndex, 1)[0];
         templates.splice(newIndex, 0, movedItem);
 
-        saveTemplatesData();
-        renderTemplates();
+        saveTemplatesData()
+          .then(() => {
+            renderTemplates();
+          })
+          .catch((error) => {
+            templates = previousTemplates;
+            renderTemplates();
+            console.error("템플릿 순서 저장 오류:", error);
+            showToast(error.message || "템플릿 순서 저장에 실패했습니다.");
+          });
       }
     },
   });
@@ -233,6 +384,7 @@ function addTemplate() {
 
 // 템플릿 저장 함수
 async function saveTemplate() {
+  const previousTemplates = templates.map((template) => ({ ...template }));
   const title = titleInput.value.trim();
   const body = bodyInput.value.trim();
 
@@ -250,7 +402,14 @@ async function saveTemplate() {
   }
 
   // 스토리지에 저장
-  await saveTemplatesData();
+  try {
+    await saveTemplatesData();
+  } catch (error) {
+    templates = previousTemplates;
+    console.error("템플릿 저장 오류:", error);
+    showToast(error.message || "템플릿 저장에 실패했습니다.");
+    return;
+  }
 
   renderTemplates();
 }
@@ -318,7 +477,11 @@ closeDonateBtn.addEventListener("click", () => {
 });
 
 // 초기 로드
-document.addEventListener("DOMContentLoaded", loadTemplates);
+document.addEventListener("DOMContentLoaded", async () => {
+  await initializeSettings();
+  bindSettingsEvents();
+  await loadTemplates();
+});
 
 //---------------- 건축물대장 조회 기능 ----------------
 const API_KEY =

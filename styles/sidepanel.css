@@ -23,6 +23,28 @@
   --md-elevation-level1: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
   --md-elevation-level2: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
   --md-elevation-level3: 0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --md-sys-color-primary: #8fd4d3;
+  --md-sys-color-on-primary: #003737;
+  --md-sys-color-primary-container: #1d4f4f;
+  --md-sys-color-on-primary-container: #d8fffe;
+  --md-sys-color-secondary: #b0cccb;
+  --md-sys-color-on-secondary: #1b3535;
+  --md-sys-color-secondary-container: #334b4b;
+  --md-sys-color-on-secondary-container: #cce8e7;
+  --md-sys-color-surface: #111414;
+  --md-sys-color-on-surface: #e1e3e2;
+  --md-sys-color-surface-variant: #202526;
+  --md-sys-color-on-surface-variant: #bec9c8;
+  --md-sys-color-outline: #889392;
+  --md-sys-color-outline-variant: #3f4948;
+  --md-elevation-level1: 0 1px 2px rgba(0,0,0,0.45), 0 1px 3px 1px rgba(0,0,0,0.25);
+  --md-elevation-level2: 0 1px 2px rgba(0,0,0,0.45), 0 2px 6px 2px rgba(0,0,0,0.25);
+  --md-elevation-level3: 0 4px 8px 3px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.45);
+  color-scheme: dark;
 }
 
 /* 기본 스타일 */
@@ -280,6 +302,22 @@ body {
   border-color: var(--md-sys-color-primary);
 }
 
+.md3-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--md-sys-color-outline);
+  background-color: var(--md-sys-color-surface);
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface);
+}
+
+.md3-select:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -368,6 +406,60 @@ body {
 
 .clipboard-copy:hover {
   color: var(--md-sys-color-primary);
+}
+
+.settings-surface {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-section {
+  padding: 16px;
+  border-radius: 16px;
+  background-color: var(--md-sys-color-surface);
+  box-shadow: var(--md-elevation-level1);
+}
+
+.settings-section-header {
+  margin-bottom: 16px;
+}
+
+.settings-section-header h4 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+}
+
+.settings-section-header p,
+.settings-inline-text,
+.settings-help-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.settings-help-text {
+  margin-top: 8px;
+}
+
+.settings-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.settings-label {
+  min-width: 96px;
+  color: var(--md-sys-color-on-surface);
+  font-weight: 500;
+}
+
+.settings-radio-group-disabled {
+  opacity: 0.6;
 }
 
 /* 토스트 메시지 스타일 */
