@@ -6,6 +6,13 @@
 
 ## 📋 구현된 기능 목록
 
+### 0. ✅ 설정 탭 실제 연동
+- **테마 설정:** `light` / `dark` / `system` 값을 저장하고 즉시 UI에 반영
+- **저장소 타입 전환:** `local` ↔ `sync` 전환 시 템플릿을 복사/검증 후 활성 저장소 포인터 변경
+- **동기화 사용량 표시:** `chrome.storage.sync.getBytesInUse(null)` 기반으로 사용량 노출
+- **클립보드 쓰기 정책:** 설정에서 차단 시 복사 버튼 동작 중단 + 토스트 안내
+- **클립보드 읽기:** 아직 실제 사용처가 없어 비활성 표시만 유지
+
 ### 1. ✅ 클립보드 복사 기능 (초기 요청)
 - **변경 전:** `drag-handle` 아이콘
 - **변경 후:** `content_copy` 아이콘
@@ -87,6 +94,15 @@
 4. ✅ 템플릿 목록에 추가됨
 ```
 
+### 시나리오 2-1: 저장소를 sync로 전환
+```
+1. 설정 아이콘(⚙️) 클릭
+2. 저장소 타입을 "동기화"로 변경
+3. 기존 템플릿이 sync 저장소로 복사됨
+4. ✅ 검증 성공 후 활성 저장소가 sync로 변경됨
+5. ✅ 컨텍스트 메뉴가 sync 데이터를 기준으로 재생성됨
+```
+
 ### 시나리오 3: 건축물 조회 (주소 검색 사용)
 ```
 1. 검색 아이콘(🔍) 클릭
@@ -118,7 +134,8 @@
 chrome-extension-clipboard/
 ├── manifest.json                           # 확장 프로그램 설정
 ├── sidepanel.html                          # 메인 UI (260줄)
-├── sidepanel.js                           # 메인 로직 (820줄)
+├── sidepanel.js                           # 메인 로직
+├── storage-utils.js                       # 설정/저장소 전환 헬퍼
 ├── background.js                          # 백그라운드 스크립트
 ├── iframe-content.js                      # 컨텐츠 스크립트
 ├── styles/
@@ -227,6 +244,11 @@ chrome-extension-clipboard/
 - 토글로 자유롭게 전환
 
 ---
+
+## 🧪 검증
+
+- `npm test` — 저장소 전환/기본 설정/quota 검사 테스트 통과
+- `node --check sidepanel.js background.js storage-utils.js tests/settings-storage.test.js` — 문법 검증 통과
 
 ## 🎊 완료!
 

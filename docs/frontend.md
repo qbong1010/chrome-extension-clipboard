@@ -22,7 +22,7 @@
 | 항목 | 내용 |
 |------|------|
 | **진입점** | `sidepanel.html` (Chrome Side Panel) |
-| **스크립트** | `sidepanel.js` (ES Module) |
+| **스크립트** | `sidepanel.js` (ES Module) + `storage-utils.js` |
 | **스타일** | `styles/sidepanel.css` |
 | **디자인** | Material Design 3 (MD3) 기반 |
 | **아이콘** | Material Symbols Rounded (Google Fonts) |
@@ -76,18 +76,19 @@
 
 | 동작 | 함수 | 설명 |
 |------|------|------|
-| 초기 로드 | `loadTemplates()` | `chrome.storage.local` → `userTemplates` 로드 |
+| 초기 로드 | `loadTemplates()` | 현재 활성 저장소(`local`/`sync`)에서 `userTemplates` 로드 |
 | 렌더링 | `renderTemplates()` | 목록 동적 생성 + Sortable 초기화 |
-| 클립보드 복사 | `copyToClipboard(text)` | `navigator.clipboard.writeText()` 사용 |
+| 클립보드 복사 | `copyToClipboard(text)` | `clipboardWriteEnabled` 허용 시 `navigator.clipboard.writeText()` 사용 |
 | 드래그 정렬 | `initSortable()` | Sortable.js `onEnd` → 배열 재정렬 → 저장 |
-| 저장 | `saveTemplatesData()` | `chrome.storage.local.set()` + 메뉴 갱신 메시지 전송 |
+| 저장 | `saveTemplatesData()` | 활성 저장소에 저장 + 메뉴 갱신 메시지 전송 |
 
 ### 연동 API
 
 | API | 호출 함수 | 용도 |
 |-----|----------|------|
-| `chrome.storage.local.get(['userTemplates'])` | `loadTemplates()` | 템플릿 데이터 로드 |
-| `chrome.storage.local.set({ userTemplates })` | `saveTemplatesData()` | 템플릿 데이터 저장 |
+| `getActiveTemplateStorageArea()` | `loadTemplates()`, `saveTemplatesData()` | 현재 템플릿 저장소(`local`/`sync`) 결정 |
+| `chrome.storage.local.get(['userTemplates'])` / `chrome.storage.sync.get(['userTemplates'])` | `loadTemplates()` | 활성 저장소에서 템플릿 데이터 로드 |
+| `chrome.storage.local.set({ userTemplates })` / `chrome.storage.sync.set({ userTemplates })` | `saveTemplatesData()` | 활성 저장소에 템플릿 데이터 저장 |
 | `chrome.runtime.sendMessage('refresh‑menus')` | `saveTemplatesData()` | 컨텍스트 메뉴 갱신 요청 |
 | `fetch('default-templates.json')` | `loadTemplates()` | 기본 템플릿 로드 (최초 실행 시) |
 | `navigator.clipboard.writeText()` | `copyToClipboard()` | 클립보드에 텍스트 복사 |
@@ -111,25 +112,39 @@
 ### 화면 레이아웃
 
 ```
-⚙️ 설정 (아직 개선중)
+⚙️ 설정
 ├── 일반
 │   └── 테마: [일반모드 ▼]
 ├── 저장소
 │   ├── 저장소 타입: [로컬 ▼]
-│   └── 동기화 저장소 사용량: -- / --
+│   └── 동기화 저장소 사용량: 0 B / 100 KB
 └── 권한
-    ├── 클립보드 쓰기: ◉ 허가 ○ 불허가
-    └── 클립보드 읽기: ◉ 허가 ○ 불허가
+    ├── 클립보드 쓰기: ◉ 허용 ○ 차단
+    └── 클립보드 읽기: ○ 허용 ◉ 차단 (비활성)
 ```
+
+### 주요 동작
+
+| 동작 | 함수 | 설명 |
+|------|------|------|
+| 초기 설정 로드 | `initializeSettings()` | `extensionSettings`를 읽어 컨트롤 상태와 테마를 초기화 |
+| 테마 변경 | `handleThemeChange()` | `theme`를 저장하고 즉시 화면에 반영 |
+| 저장소 타입 변경 | `handleStorageTypeChange()` | `local ↔ sync` 전환 시 템플릿을 복사/검증 후 포인터 변경 |
+| 동기화 사용량 표시 | `updateSyncUsage()` | `chrome.storage.sync.getBytesInUse(null)`로 사용량 표시 |
+| 클립보드 쓰기 정책 변경 | `handleClipboardWriteChange()` | `clipboardWriteEnabled` 저장 후 복사 허용 여부 반영 |
 
 ### 연동 API
 
 | API | 용도 |
 |-----|------|
-| `chrome.storage.local` / `chrome.storage.sync` | 설정값 저장/로드 (구현 진행 중) |
+| `chrome.storage.local.get/set(['extensionSettings'])` | 설정 객체(`theme`, `templateStorageArea`, `clipboardWriteEnabled`) 저장/로드 |
+| `chrome.storage.local.get/set(['userTemplates'])` | 로컬 저장소 선택 시 템플릿 저장/로드 |
+| `chrome.storage.sync.get/set(['userTemplates'])` | 동기화 저장소 선택 시 템플릿 저장/로드 |
+| `chrome.storage.sync.getBytesInUse(null)` | sync 사용량 표시 |
+| `chrome.runtime.sendMessage('refresh‑menus')` | 저장소 전환/템플릿 변경 후 컨텍스트 메뉴 재생성 |
 
 > [!NOTE]
-> 설정 화면은 현재 "아직 개선중" 상태이며, UI는 구성되어 있으나 일부 기능의 실제 동작 연동이 미완성입니다.
+> 설정 화면은 현재 실제 동작합니다. 다만 클립보드 읽기 기능은 아직 사용처가 없어 비활성 상태로만 표시됩니다.
 
 ---
 
@@ -257,7 +272,7 @@
 
 | API | 용도 |
 |-----|------|
-| `chrome.storage.local.set({ userTemplates })` | 수정된 템플릿 저장 |
+| `chrome.storage.local.set({ userTemplates })` / `chrome.storage.sync.set({ userTemplates })` | 현재 활성 저장소에 수정된 템플릿 저장 |
 | `chrome.runtime.sendMessage('refresh‑menus')` | 컨텍스트 메뉴 동기화 |
 
 ---
@@ -319,7 +334,8 @@ navItems.forEach((item, index) => {
 ```
 chrome-extension-clipboard/
 ├── sidepanel.html          # 전체 HTML 구조 (3개 View + 2개 Dialog)
-├── sidepanel.js            # 프론트엔드 로직 (858줄)
+├── sidepanel.js            # 프론트엔드 로직 (설정 + 템플릿 + 검색)
+├── storage-utils.js        # 설정/스토리지 라우팅 헬퍼
 ├── styles/
 │   └── sidepanel.css       # MD3 기반 스타일
 ├── libs/

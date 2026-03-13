@@ -16,7 +16,8 @@ graph LR
     end
 
     subgraph Backend ["백엔드 & API"]
-        E[chrome.storage.local]
+        E[chrome.storage.local\nextensionSettings + local templates]
+        E2[chrome.storage.sync\nsync templates]
         F[chrome.runtime.sendMessage]
         G[navigator.clipboard]
         H[건축물대장 공공 API]
@@ -24,12 +25,17 @@ graph LR
         J[default-templates.json]
     end
 
-    A -->|GET/SET userTemplates| E
+    A -->|GET/SET userTemplates\n(active area)| E
+    A -->|GET/SET userTemplates\n(active area)| E2
     A -->|refresh-menus| F
     A -->|writeText| G
     A -->|fetch 최초 로드| J
 
-    D -->|SET userTemplates| E
+    B -->|SET extensionSettings| E
+    B -->|GET/SET userTemplates\n(active area)| E
+    B -->|GET/SET userTemplates\n(active area)| E2
+    D -->|SET userTemplates\n(active area)| E
+    D -->|SET userTemplates\n(active area)| E2
     D -->|refresh-menus| F
 
     C -->|fetch 조회| H
@@ -44,20 +50,22 @@ graph LR
 
 | 사용자 액션 | 호출 함수 | API / 엔드포인트 | Method | 데이터 | 비고 |
 |------------|----------|-----------------|--------|--------|------|
-| 화면 초기 로드 | `loadTemplates()` | `chrome.storage.local.get(['userTemplates'])` | GET | `userTemplates[]` | DOMContentLoaded 시 |
+| 화면 초기 로드 | `loadTemplates()` | `getActiveTemplateStorageArea()` | GET | `'local' | 'sync'` | DOMContentLoaded 시 |
+| 화면 초기 로드 | `loadTemplates()` | `chrome.storage.local.get(['userTemplates'])` / `chrome.storage.sync.get(['userTemplates'])` | GET | `userTemplates[]` | 활성 저장소 기준 |
 | 화면 초기 로드 (비어있을 때) | `loadTemplates()` | `fetch('default-templates.json')` | GET | 기본 템플릿 JSON | 최초 사용 시에만 |
-| 📋 복사 버튼 클릭 | `copyToClipboard(text)` | `navigator.clipboard.writeText(text)` | — | 템플릿 body 텍스트 | |
-| 드래그로 순서 변경 | `initSortable()` → `saveTemplatesData()` | `chrome.storage.local.set({ userTemplates })` | SET | 재정렬된 배열 | |
+| 📋 복사 버튼 클릭 | `copyToClipboard(text)` | `navigator.clipboard.writeText(text)` | — | 템플릿 body 텍스트 | `clipboardWriteEnabled=true`일 때만 |
+| 드래그로 순서 변경 | `initSortable()` → `saveTemplatesData()` | `chrome.storage.local.set({ userTemplates })` / `chrome.storage.sync.set({ userTemplates })` | SET | 재정렬된 배열 | 활성 저장소 기준 |
 | 드래그로 순서 변경 | `saveTemplatesData()` | `chrome.runtime.sendMessage('refresh‑menus')` | MSG | — | 컨텍스트 메뉴 갱신 |
 
 ### 2. 설정 화면 (`settingsView`)
 
 | 사용자 액션 | 호출 함수 | API / 엔드포인트 | Method | 데이터 | 비고 |
 |------------|----------|-----------------|--------|--------|------|
-| 테마 변경 | (미구현) | `chrome.storage.local` | SET | 테마 설정값 | 개발 중 |
-| 저장소 타입 변경 | (미구현) | `chrome.storage.local/sync` | — | 저장소 설정 | 개발 중 |
-
-> ⚠️ 설정 화면의 API 연동은 현재 **미구현** 상태입니다.
+| 화면 초기화 | `initializeSettings()` | `chrome.storage.local.get(['extensionSettings'])` | GET | 설정 객체 | `theme`, `templateStorageArea`, `clipboardWriteEnabled` |
+| 테마 변경 | `handleThemeChange()` | `chrome.storage.local.set({ extensionSettings })` | SET | `theme` | 즉시 화면 반영 |
+| 저장소 타입 변경 | `handleStorageTypeChange()` | `migrateTemplatesToStorageArea()` | GET/SET | `userTemplates[]` | source → target 복사 후 포인터 변경 |
+| 저장소 타입 변경 | `updateSyncUsage()` | `chrome.storage.sync.getBytesInUse(null)` | GET | sync 사용량 | 설정 화면 표시 |
+| 클립보드 쓰기 변경 | `handleClipboardWriteChange()` | `chrome.storage.local.set({ extensionSettings })` | SET | `clipboardWriteEnabled` | 복사 허용 여부 반영 |
 
 ### 3. 건축물대장 조회 화면 (`buildingSearchView`)
 
@@ -75,7 +83,7 @@ graph LR
 
 | 사용자 액션 | 호출 함수 | API / 엔드포인트 | Method | 데이터 | 비고 |
 |------------|----------|-----------------|--------|--------|------|
-| [저장] 클릭 | `saveTemplate()` → `saveTemplatesData()` | `chrome.storage.local.set({ userTemplates })` | SET | 수정된 배열 | |
+| [저장] 클릭 | `saveTemplate()` → `saveTemplatesData()` | `chrome.storage.local.set({ userTemplates })` / `chrome.storage.sync.set({ userTemplates })` | SET | 수정된 배열 | 활성 저장소 기준 |
 | [저장] 클릭 | `saveTemplatesData()` | `chrome.runtime.sendMessage('refresh‑menus')` | MSG | — | 메뉴 동기화 |
 
 ### 5. 후원하기 모달 (`donateQrDlg`)
@@ -90,10 +98,10 @@ graph LR
 
 | 트리거 | 함수 | API 호출 | 설명 |
 |--------|------|---------|------|
-| 확장 설치/업데이트 | `seedIfEmpty()` | `chrome.storage.local.get/set` | 초기 샘플 데이터 생성 |
-| 확장 설치/업데이트 | `rebuildMenus()` | `chrome.contextMenus.removeAll()` + `create()` | 메뉴 전체 재생성 |
-| 사이드패널 메시지 수신 | `rebuildMenus()` | `chrome.contextMenus.removeAll()` + `create()` | 메뉴 갱신 |
-| 컨텍스트 메뉴 클릭 | `onClicked` 핸들러 | `chrome.storage.local.get` + `chrome.scripting.executeScript` | 텍스트 삽입 |
+| 확장 설치/업데이트 | `seedIfEmpty()` | `getActiveTemplateStorageArea()` + 해당 storage area `get/set` | 활성 저장소 기준 초기 샘플 데이터 생성 |
+| 확장 설치/업데이트 | `rebuildMenus()` | `chrome.contextMenus.removeAll()` + `create()` + 활성 저장소 읽기 | 메뉴 전체 재생성 |
+| 사이드패널 메시지 수신 | `rebuildMenus()` | `chrome.contextMenus.removeAll()` + `create()` + 활성 저장소 읽기 | 메뉴 갱신 |
+| 컨텍스트 메뉴 클릭 | `onClicked` 핸들러 | 활성 저장소 `get` + `chrome.scripting.executeScript` | 텍스트 삽입 |
 | 확장 아이콘 클릭 | `onClicked` | `chrome.sidePanel.open()` | 사이드패널 열기 |
 
 ---
@@ -111,10 +119,11 @@ graph LR
                         │
                         ▼
                saveTemplatesData()
-               ┌───────────────────┐
-               │ 1. storage.set()  │──► chrome.storage.local
-               │ 2. sendMessage()  │──► background.js
-               └───────────────────┘           │
+               ┌──────────────────────────────────────────┐
+               │ 1. getActiveTemplateStorageArea()       │
+               │ 2. storage.set() to local or sync       │
+               │ 3. sendMessage('refresh-menus')         │
+               └──────────────────────────────────────────┘           │
                                                ▼
                                         rebuildMenus()
                                                │

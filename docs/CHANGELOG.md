@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] - 2026-03-13
+
+### Added
+- ⚙️ **설정 탭 실제 동작 연동**
+  - `theme` / `templateStorageArea` / `clipboardWriteEnabled`를 `extensionSettings`로 저장
+  - `storage-utils.js`를 추가해 설정 정규화, 활성 저장소 결정, 저장소 전환 로직 분리
+  - `tests/settings-storage.test.js`를 추가해 기본 설정, 저장소 전환, sync quota 검증 테스트 보강
+
+### Changed
+- 🗂️ **템플릿 저장소 라우팅 개선**
+  - 템플릿 데이터 `userTemplates`를 현재 설정된 저장소(`chrome.storage.local` 또는 `chrome.storage.sync`)에 저장하도록 변경
+  - 저장소 타입 변경 시 템플릿을 복사하고 검증한 뒤에만 활성 저장소 포인터를 갱신하도록 변경
+  - `background.js`의 메뉴 생성/클릭/초기 시드가 모두 활성 저장소를 기준으로 동작하도록 변경
+
+- 🎨 **설정 화면 UI 업데이트**
+  - 설정 화면의 "아직 개선중" 문구 제거
+  - sync 저장소 사용량 표시 추가
+  - 클립보드 읽기 항목을 비활성 표시로 조정
+
+### Fixed
+- 🧱 **sync 저장 실패 처리 개선**
+  - 일반 템플릿 저장 경로에서도 sync quota를 검사하도록 변경
+  - 저장 실패 시 템플릿 추가/수정/정렬 UI를 롤백하도록 보강
+  - 기존 ID 없는 템플릿을 로드 시 자동 보정 후 즉시 저장해 컨텍스트 메뉴 누락을 방지
+
+### Docs
+- `docs/frontend.md`, `docs/backend.md`, `docs/api-integration.md`, `docs/PROJECT_CONTEXT.md`, `docs/IMPLEMENTATION_COMPLETE.md`를 현재 설정/저장소 구조에 맞게 갱신
+
 ## [1.5.0] - 2025-11-11
 
 ### Added

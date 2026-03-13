@@ -44,8 +44,9 @@
 │  └───────────────────────────────────────────┘ │
 │                                                 │
 │  ┌──────────────────────────────────────────┐  │
-│  │         chrome.storage.local              │  │
-│  │         (userTemplates 데이터)             │  │
+│  │ chrome.storage.local / chrome.storage.sync │ │
+│  │ local: extensionSettings + userTemplates │ │
+│  │ sync: userTemplates (선택 시)             │ │
 │  └──────────────────────────────────────────┘  │
 └────────────────────────────────────────────────┘
          │
@@ -62,43 +63,67 @@
 
 ## Chrome Extension API
 
-### API 1: `chrome.storage.local`
+### API 1: `chrome.storage.local` / `chrome.storage.sync`
 
-> 템플릿 데이터의 로컬 영구 저장소
+> 설정 포인터는 `local`, 실제 템플릿 데이터는 활성 저장소(`local` 또는 `sync`)에 저장
 
 | 항목 | 내용 |
 |------|------|
-| **키** | `userTemplates` |
-| **데이터 형식** | `Array<{ id: string, title: string, body: string }>` |
-| **호출 위치** | `sidepanel.js`, `background.js` |
+| **설정 키 (`local`)** | `extensionSettings` |
+| **템플릿 키 (`local`/`sync`)** | `userTemplates` |
+| **설정 데이터 형식** | `{ theme, templateStorageArea, clipboardWriteEnabled }` |
+| **템플릿 데이터 형식** | `Array<{ id: string, title: string, body: string }>` |
+| **호출 위치** | `sidepanel.js`, `background.js`, `storage-utils.js` |
 
-#### 읽기 (GET)
+#### 설정 읽기/쓰기 (`extensionSettings`, local only)
 ```javascript
-// 템플릿 목록 로드
-const { userTemplates = [] } = await chrome.storage.local.get(['userTemplates']);
+const { extensionSettings } = await chrome.storage.local.get(['extensionSettings']);
+await chrome.storage.local.set({ extensionSettings: nextSettings });
 ```
 
 | 호출 위치 | 함수 | 용도 |
 |----------|------|------|
-| `sidepanel.js` | `loadTemplates()` | 사이드패널 초기 로드 |
-| `background.js` | `rebuildMenus()` | 컨텍스트 메뉴 생성 |
+| `storage-utils.js` | `getExtensionSettings()` | 설정 정규화 + 기본값 보정 |
+| `storage-utils.js` | `saveExtensionSettings()` | 설정 저장 |
+| `storage-utils.js` | `getActiveTemplateStorageArea()` | 현재 템플릿 저장소 결정 |
+
+#### 템플릿 읽기/쓰기 (`userTemplates`, active area)
+```javascript
+const storageArea = areaName === 'sync' ? chrome.storage.sync : chrome.storage.local;
+const { userTemplates = [] } = await storageArea.get(['userTemplates']);
+await storageArea.set({ userTemplates: templates });
+```
+
+| 호출 위치 | 함수 | 용도 |
+|----------|------|------|
+| `sidepanel.js` | `loadTemplates()` | 현재 활성 저장소에서 템플릿 로드 |
+| `sidepanel.js` | `saveTemplatesData()` | 추가/수정/정렬 후 활성 저장소에 저장 |
+| `background.js` | `rebuildMenus()` | 현재 활성 저장소를 기준으로 컨텍스트 메뉴 생성 |
 | `background.js` | `onClicked` 핸들러 | 클릭된 메뉴 항목의 본문 조회 |
+| `background.js` | `seedIfEmpty()` | 활성 저장소가 비어 있을 때만 샘플 데이터 초기화 |
+| `storage-utils.js` | `migrateTemplatesToStorageArea()` | 저장소 전환 시 템플릿 복사/검증 |
 
-#### 쓰기 (SET)
+#### 저장소 전환 흐름
+
 ```javascript
-// 템플릿 목록 저장
-await chrome.storage.local.set({ userTemplates: templates });
+const sourceTemplates = await getTemplatesFromStorage(sourceAreaName);
+await saveTemplatesToStorage(targetAreaName, sourceTemplates);
+const migratedTemplates = await getTemplatesFromStorage(targetAreaName);
+await saveExtensionSettings({ templateStorageArea: targetAreaName });
 ```
 
-| 호출 위치 | 함수 | 용도 |
-|----------|------|------|
-| `sidepanel.js` | `saveTemplatesData()` | 추가/수정/삭제/정렬 후 저장 |
-| `background.js` | `seedIfEmpty()` | 최초 샘플 데이터 초기화 |
+- 먼저 새 저장소에 복사하고 검증한 뒤에만 `templateStorageArea` 포인터를 바꿉니다.
+- `sync`를 사용할 때는 `saveTemplatesToStorage()`에서 quota를 먼저 검사합니다.
 
 #### 데이터 스키마
 
 ```json
 {
+  "extensionSettings": {
+    "theme": "system",
+    "templateStorageArea": "local",
+    "clipboardWriteEnabled": true
+  },
   "userTemplates": [
     {
       "id": "tpl_1709234567890_a1b2c3d4e",
@@ -204,7 +229,7 @@ insertText(text)
 
 ### API 4: `chrome.runtime.onInstalled`
 
-> 확장 프로그램 최초 설치/업데이트 시 실행
+> 확장 프로그램 최초 설치/업데이트 시 실행. 현재 활성 저장소 기준으로 샘플 데이터와 메뉴를 준비합니다.
 
 ```javascript
 chrome.runtime.onInstalled.addListener(async () => {
@@ -238,7 +263,7 @@ chrome.runtime.sendMessage('refresh‑menus', (response) => {
 
 | 방향 | 메시지 | 응답 | 용도 |
 |------|--------|------|------|
-| Side Panel → Background | `'refresh‑menus'` | `{ ok: true }` | 템플릿 변경 후 컨텍스트 메뉴 갱신 |
+| Side Panel → Background | `'refresh‑menus'` | `{ ok: true }` | 템플릿 변경 또는 저장소 전환 후 컨텍스트 메뉴 갱신 |
 
 ---
 
