@@ -1,5 +1,11 @@
 /* background.js – Chrome MV3 service worker */
 
+import {
+  getActiveTemplateStorageArea,
+  getTemplatesFromStorage,
+  saveTemplatesToStorage,
+} from './storage-utils.js';
+
 const ROOT_MENU_ID = 'quickTemplateRoot';
 
 /* ───────── 최초 설치/업데이트 ───────── */
@@ -21,7 +27,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === ROOT_MENU_ID) return;
 
-  const { userTemplates = [] } = await chrome.storage.local.get(['userTemplates']);
+  const storageArea = await getActiveTemplateStorageArea();
+  const userTemplates = await getTemplatesFromStorage(storageArea);
 
   const tpl = userTemplates.find(t => t.id === info.menuItemId);
   if (!tpl) return;
@@ -59,10 +66,10 @@ async function rebuildMenus() {
       contexts: ['editable']
     });
 
-    // 스토리지에서 템플릿 데이터 가져오기
-    const { userTemplates = [] } = await chrome.storage.local.get(['userTemplates']);
+    const storageArea = await getActiveTemplateStorageArea();
+    const userTemplates = await getTemplatesFromStorage(storageArea);
     
-    console.log('로드된 템플릿:', userTemplates);
+    console.log('로드된 템플릿:', userTemplates, storageArea);
 
     // 각 템플릿에 대한 메뉴 항목 생성
     for (const tpl of userTemplates) {
@@ -138,7 +145,9 @@ function insertText(text) {
 
 /* ───────── 초기 샘플 데이터 ───────── */
 async function seedIfEmpty() {
-  const { userTemplates } = await chrome.storage.local.get(['userTemplates']);
+  const storageArea = await getActiveTemplateStorageArea();
+  const userTemplates = await getTemplatesFromStorage(storageArea);
+
   if (userTemplates && userTemplates.length > 0) return;
 
   const sample = [
@@ -159,9 +168,7 @@ async function seedIfEmpty() {
     }
   ];
   
-  await chrome.storage.local.set({
-    userTemplates: sample
-  });
+  await saveTemplatesToStorage(storageArea, sample);
 }
 
 /* ───────── 아이콘 클릭 → 사이드패널 열기 ───────── */
