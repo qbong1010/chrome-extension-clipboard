@@ -9,6 +9,11 @@ import {
   saveExtensionSettings,
   saveTemplatesToStorage,
 } from "./storage-utils.js";
+import {
+  applyAddressSelection,
+  createAddressFinderMarkup,
+  searchAddressByKeyword,
+} from "./building-code-lookup.js";
 
 // DOM 요소
 const userList = document.getElementById("userList");
@@ -21,6 +26,12 @@ const cancelBtn = document.getElementById("cancelBtn");
 const donateQrDlg = document.getElementById("donateQrDlg");
 const closeDonateBtn = document.getElementById("closeDonateBtn");
 const buildingSearchView = document.getElementById("buildingSearchView");
+const legalDongCodeView = document.getElementById("legalDongCodeView");
+const codeLookupDlg = document.getElementById("codeLookupDlg");
+const closeCodeLookupBtn = document.getElementById("closeCodeLookupBtn");
+const openCodeLookupBtn = document.getElementById("openCodeLookupBtn");
+const legalDongFinderMount = document.getElementById("legalDongFinderMount");
+const codeLookupFinderMount = document.getElementById("codeLookupFinderMount");
 
 // 현재 편집 중인 템플릿 아이템의 인덱스 (새 아이템일 경우 null)
 let editingIndex = null;
@@ -33,6 +44,8 @@ const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 const themeSelect = document.getElementById("themeSelect");
 const storageTypeSelect = document.getElementById("storageTypeSelect");
+const buildingApiKeyInput = document.getElementById("buildingApiKeyInput");
+const saveBuildingApiKeyBtn = document.getElementById("saveBuildingApiKeyBtn");
 const syncUsage = document.getElementById("syncUsage");
 const syncQuota = document.getElementById("syncQuota");
 const clipboardWriteRadios = document.querySelectorAll(
@@ -68,6 +81,7 @@ function applyTheme() {
 function syncSettingsControls() {
   themeSelect.value = extensionSettings.theme;
   storageTypeSelect.value = extensionSettings.templateStorageArea;
+  buildingApiKeyInput.value = extensionSettings.buildingApiKey;
 
   clipboardWriteRadios.forEach((radio) => {
     radio.checked =
@@ -111,6 +125,18 @@ async function handleClipboardWriteChange(event) {
   );
 }
 
+async function handleBuildingApiKeySave() {
+  extensionSettings = await saveExtensionSettings({
+    buildingApiKey: buildingApiKeyInput.value,
+  });
+  syncSettingsControls();
+  showToast(
+    extensionSettings.buildingApiKey
+      ? "건축물대장 API 키가 저장되었습니다."
+      : "건축물대장 API 키가 제거되었습니다.",
+  );
+}
+
 async function handleStorageTypeChange(event) {
   const nextStorageType = event.target.value;
   const previousStorageType = extensionSettings.templateStorageArea;
@@ -144,6 +170,13 @@ async function handleStorageTypeChange(event) {
 function bindSettingsEvents() {
   themeSelect.addEventListener("change", handleThemeChange);
   storageTypeSelect.addEventListener("change", handleStorageTypeChange);
+  saveBuildingApiKeyBtn.addEventListener("click", handleBuildingApiKeySave);
+  buildingApiKeyInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleBuildingApiKeySave();
+    }
+  });
   clipboardWriteRadios.forEach((radio) => {
     radio.addEventListener("change", handleClipboardWriteChange);
   });
@@ -419,32 +452,26 @@ const navItems = document.querySelectorAll(".nav-item");
 const templateManagerView = document.getElementById("templateManagerView");
 const settingsView = document.getElementById("settingsView");
 const addTemplateBtn = document.getElementById("addTemplateBtn");
+const viewMap = {
+  templateManagerView,
+  settingsView,
+  buildingSearchView,
+  legalDongCodeView,
+};
 
-// navItems에 순서대로: 0 -> link, 1 -> settings, 2 -> search
-navItems.forEach((item, index) => {
+function showView(viewId) {
+  Object.entries(viewMap).forEach(([key, view]) => {
+    view.style.display = key === viewId ? "block" : "none";
+  });
+
+  navItems.forEach((item) => {
+    item.classList.toggle("active", item.dataset.viewTarget === viewId);
+  });
+}
+
+navItems.forEach((item) => {
   item.addEventListener("click", () => {
-    // 모든 nav-item에서 active 제거
-    navItems.forEach((i) => i.classList.remove("active"));
-    // 현재 클릭된 아이템에만 active 설정
-    item.classList.add("active");
-
-    // 화면 전환
-    if (index === 0) {
-      // 링크 탭 (기본 템플릿 목록)
-      templateManagerView.style.display = "block";
-      settingsView.style.display = "none";
-      buildingSearchView.style.display = "none";
-    } else if (index === 1) {
-      // 설정 탭
-      templateManagerView.style.display = "none";
-      settingsView.style.display = "block";
-      buildingSearchView.style.display = "none";
-    } else if (index === 2) {
-      // 검색 탭 (건축물대장 조회)
-      templateManagerView.style.display = "none";
-      settingsView.style.display = "none";
-      buildingSearchView.style.display = "block";
-    }
+    showView(item.dataset.viewTarget);
   });
 });
 
@@ -478,14 +505,23 @@ closeDonateBtn.addEventListener("click", () => {
 
 // 초기 로드
 document.addEventListener("DOMContentLoaded", async () => {
+  initializeAddressFinder({
+    mount: legalDongFinderMount,
+    focusBunInput: false,
+  });
+  initializeAddressFinder({
+    mount: codeLookupFinderMount,
+    focusBunInput: true,
+    closeDialogOnSelect: true,
+  });
+  bindCodeLookupDialogEvents();
+  showView("templateManagerView");
   await initializeSettings();
   bindSettingsEvents();
   await loadTemplates();
 });
 
 //---------------- 건축물대장 조회 기능 ----------------
-const API_KEY =
-  "0432b6814606f51e00ba673c512ed8973ff859a6ed723fa5591b736c76be31fb";
 const sigunguInput = document.getElementById("sigunguInput");
 const bjdongInput = document.getElementById("bjdongInput");
 const platGbInput = document.getElementById("platGbInput");
@@ -501,18 +537,9 @@ const detailView = document.getElementById("detailView");
 const simpleViewBtn = document.getElementById("simpleViewBtn");
 const detailViewBtn = document.getElementById("detailViewBtn");
 
-// 주소 검색 UI 요소
-const finderHeader = document.getElementById("finderHeader");
-const finderToggle = document.getElementById("finderToggle");
-const finderContent = document.getElementById("finderContent");
-const addressSearchInput = document.getElementById("addressSearchInput");
-const addressSearchBtn = document.getElementById("addressSearchBtn");
-const addressSearchResults = document.getElementById("addressSearchResults");
-const addressResultsList = document.getElementById("addressResultsList");
-const resultsCount = document.getElementById("resultsCount");
-
 // 주소 데이터 저장 변수
 let addressData = null;
+let lastCodeLookupTrigger = null;
 
 // 주소 데이터 로드 함수
 async function loadAddressData() {
@@ -530,133 +557,159 @@ async function loadAddressData() {
   }
 }
 
-// 주소 검색 함수
-function searchAddressByKeyword(keyword) {
-  if (!addressData) {
-    throw new Error("주소 데이터가 로드되지 않았습니다");
-  }
-
-  // 검색어 정리 (공백 제거, 소문자화)
-  const searchKey = keyword.replace(/\s/g, "").toLowerCase();
-
-  if (searchKey.length < 2) {
-    return [];
-  }
-
-  const results = [];
-  const codes = Object.keys(addressData);
-
-  for (const code of codes) {
-    const data = addressData[code];
-
-    // searchText로 매칭 (띄어쓰기 제거된 주소)
-    if (data.searchText.toLowerCase().includes(searchKey)) {
-      results.push({
-        code,
-        ...data,
-      });
-
-      // 최대 10개까지만
-      if (results.length >= 10) break;
-    }
-  }
-
-  return results;
+function queryAddressFinderElements(mount) {
+  return {
+    input: mount.querySelector('[data-role="address-search-input"]'),
+    button: mount.querySelector('[data-role="address-search-button"]'),
+    results: mount.querySelector('[data-role="address-search-results"]'),
+    count: mount.querySelector('[data-role="results-count"]'),
+    list: mount.querySelector('[data-role="address-results-list"]'),
+  };
 }
 
-// 검색 결과 렌더링
-function renderSearchResults(results) {
-  addressResultsList.innerHTML = "";
+function renderSearchResults({ elements, results, handleSelect }) {
+  elements.list.innerHTML = "";
 
   if (results.length === 0) {
-    addressResultsList.innerHTML =
-      '<li class="no-results">검색 결과가 없습니다</li>';
-    resultsCount.textContent = "0개 결과";
-    addressSearchResults.style.display = "block";
+    elements.list.innerHTML = '<li class="no-results">검색 결과가 없습니다</li>';
+    elements.count.textContent = "0개 결과";
+    elements.results.style.display = "block";
     return;
   }
 
-  resultsCount.textContent = `${results.length}개 결과`;
-  addressSearchResults.style.display = "block";
+  elements.count.textContent = `${results.length}개 결과`;
+  elements.results.style.display = "block";
 
   results.forEach((result) => {
     const li = document.createElement("li");
     li.className = "result-item";
+
+    const selectButton = document.createElement("button");
+    selectButton.className = "result-item-select";
+    selectButton.type = "button";
+    selectButton.textContent = "선택";
+    selectButton.addEventListener("click", () => {
+      handleSelect(result.code);
+    });
 
     li.innerHTML = `
       <div class="result-item-info">
         <div class="result-item-address">${result.fullAddress}</div>
         <div class="result-item-code">시군구: ${result.sigunguCd} | 법정동: ${result.bjdongCd}</div>
       </div>
-      <button class="result-item-select" data-code="${result.code}">선택</button>
     `;
 
-    addressResultsList.appendChild(li);
-  });
-
-  // 선택 버튼 이벤트 리스너 추가
-  document.querySelectorAll(".result-item-select").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const code = e.target.getAttribute("data-code");
-      selectAddressCode(code);
-    });
+    li.appendChild(selectButton);
+    elements.list.appendChild(li);
   });
 }
 
-// 주소 선택 시 코드 자동 입력
-function selectAddressCode(code) {
-  const data = addressData[code];
+function handleAddressSelection({ code, focusBunInput, closeDialogOnSelect }) {
+  const shouldFocusImmediately =
+    focusBunInput && !(closeDialogOnSelect && codeLookupDlg.open);
 
-  if (data) {
-    sigunguInput.value = data.sigunguCd;
-    bjdongInput.value = data.bjdongCd;
+  const data = applyAddressSelection({
+    addressData,
+    code,
+    sigunguInput,
+    bjdongInput,
+    bunInput,
+    focusBunInput: shouldFocusImmediately,
+  });
 
-    showToast(`"${data.fullAddress}" 선택됨`);
-
-    // 주소 찾기 섹션 접기
-    finderContent.classList.add("collapsed");
-    finderToggle.classList.remove("rotated");
-
-    // 본번 입력 필드로 포커스 이동
-    bunInput.focus();
-  }
-}
-
-// 주소 검색 실행
-async function performAddressSearch() {
-  const keyword = addressSearchInput.value.trim();
-
-  if (!keyword) {
-    showToast("검색어를 입력해주세요");
+  if (!data) {
     return;
   }
 
-  try {
-    // 데이터가 로드되지 않았으면 로드
-    if (!addressData) {
-      showToast("주소 데이터 로드 중...");
-      await loadAddressData();
-    }
+  showToast(`"${data.fullAddress}" 선택됨`);
 
-    const results = searchAddressByKeyword(keyword);
-    renderSearchResults(results);
-  } catch (error) {
-    console.error("검색 오류:", error);
-    showToast(error.message);
+  if (closeDialogOnSelect && codeLookupDlg.open) {
+    codeLookupDlg.close("select");
   }
 }
 
-// 아코디언 토글 기능
-function toggleFinder() {
-  const isCollapsed = finderContent.classList.contains("collapsed");
+function initializeAddressFinder({
+  mount,
+  focusBunInput,
+  closeDialogOnSelect = false,
+}) {
+  mount.innerHTML = createAddressFinderMarkup();
 
-  if (isCollapsed) {
-    finderContent.classList.remove("collapsed");
-    finderToggle.classList.add("rotated");
-  } else {
-    finderContent.classList.add("collapsed");
-    finderToggle.classList.remove("rotated");
+  const elements = queryAddressFinderElements(mount);
+
+  async function performSearch() {
+    const keyword = elements.input.value.trim();
+
+    if (!keyword) {
+      showToast("검색어를 입력해주세요");
+      return;
+    }
+
+    try {
+      if (!addressData) {
+        showToast("주소 데이터 로드 중...");
+        await loadAddressData();
+      }
+
+      const results = searchAddressByKeyword(addressData, keyword);
+      renderSearchResults({
+        elements,
+        results,
+        handleSelect: (code) =>
+          handleAddressSelection({
+            code,
+            focusBunInput,
+            closeDialogOnSelect,
+          }),
+      });
+    } catch (error) {
+      console.error("검색 오류:", error);
+      showToast(error.message);
+    }
   }
+
+  elements.button.addEventListener("click", performSearch);
+  elements.input.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+      performSearch();
+    }
+  });
+}
+
+function bindCodeLookupDialogEvents() {
+  openCodeLookupBtn.addEventListener("click", () => {
+    lastCodeLookupTrigger = openCodeLookupBtn;
+    codeLookupDlg.showModal();
+  });
+
+  closeCodeLookupBtn.addEventListener("click", () => {
+    codeLookupDlg.close("cancel");
+  });
+
+  codeLookupDlg.addEventListener("close", () => {
+    if (codeLookupDlg.returnValue === "select") {
+      requestAnimationFrame(() => {
+        bunInput.focus();
+      });
+    } else if (lastCodeLookupTrigger) {
+      lastCodeLookupTrigger.focus();
+    }
+
+    lastCodeLookupTrigger = null;
+  });
+
+  codeLookupDlg.addEventListener("click", (event) => {
+    const dialogRect = codeLookupDlg.getBoundingClientRect();
+    const isBackdropClick =
+      event.clientX < dialogRect.left ||
+      event.clientX > dialogRect.right ||
+      event.clientY < dialogRect.top ||
+      event.clientY > dialogRect.bottom;
+
+    if (isBackdropClick) {
+      codeLookupDlg.close("dismiss");
+    }
+  });
 }
 
 // 예제 데이터 입력 함수
@@ -705,7 +758,13 @@ function validateAndFormatInputs() {
 // 건축물대장 API 호출
 async function getBuildingInfo(params) {
   try {
-    const url = `https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo?serviceKey=${API_KEY}&sigunguCd=${params.sigunguCd}&bjdongCd=${params.bjdongCd}&platGbCd=${params.platGbCd}&bun=${params.bun}&ji=${params.ji}&_type=json`;
+    const apiKey = extensionSettings.buildingApiKey?.trim();
+
+    if (!apiKey) {
+      throw new Error("API 키를 먼저 설정해주세요");
+    }
+
+    const url = `https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo?serviceKey=${apiKey}&sigunguCd=${params.sigunguCd}&bjdongCd=${params.bjdongCd}&platGbCd=${params.platGbCd}&bun=${params.bun}&ji=${params.ji}&_type=json`;
 
     const response = await fetch(url);
 
@@ -1007,14 +1066,3 @@ detailViewBtn.addEventListener("click", () => {
 
 // 예제 버튼 이벤트
 exampleBtn.addEventListener("click", fillExampleData);
-
-// 주소 검색 이벤트
-addressSearchBtn.addEventListener("click", performAddressSearch);
-addressSearchInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    performAddressSearch();
-  }
-});
-
-// 아코디언 토글 이벤트
-finderHeader.addEventListener("click", toggleFinder);

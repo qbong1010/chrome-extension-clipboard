@@ -1,0 +1,15 @@
+Final Verification F3: Runtime QA approval
+
+Commands confirmed green:
+- `npm test`
+- `node --check sidepanel.js building-code-lookup.js storage-utils.js background.js tests/building-code-lookup.test.js tests/settings-storage.test.js tests/e2e/extension-fixtures.js tests/e2e/sidepanel-code-lookup.spec.js scripts/package-extension.mjs playwright.config.js`
+- `npx playwright test tests/e2e/sidepanel-code-lookup.spec.js --project=chromium`
+- `npm run package:extension`
+
+Artifacts present:
+- `playwright-report/index.html`
+- `test-results/`
+- `dist/paste-right-v1.5.zip`
+
+Packaged artifact check:
+- required runtime files missing: NONE

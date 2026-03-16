@@ -1,0 +1,27 @@
+Task 1 baseline summary
+
+Worktree:
+- `C:/Users/Joey/chrome-extension-clipboard`
+
+Baseline worktree status:
+- M sidepanel.html
+- M sidepanel.js
+- M styles/sidepanel.css
+- ?? .sisyphus/
+- ?? building-code-lookup.js
+- ?? tests/building-code-lookup.test.js
+
+Commands run:
+- `npm test` -> PASS
+- `node --check "sidepanel.js" && node --check "building-code-lookup.js" && node --check "storage-utils.js" && node --check "background.js"` -> PASS
+
+Key findings:
+- Runtime/browser verification is still missing; only Node-level checks exist.
+- `README.md` still tells users to use the removed inline `주소로 코드 찾기` section.
+- `docs/frontend.md` still documents removed accordion IDs.
+- `sidepanel.js` still contains a hardcoded API key.
+- `manifest.json` still uses `host_permissions: <all_urls>`.
+
+Task 2 readiness:
+- No blocker for starting the Playwright harness.
+- Known constraint: current repo is dirty; treat this as the baseline state and do not revert it.

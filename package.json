@@ -4,6 +4,11 @@
   "description": "Clipboard manager Chrome extension",
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:e2e": "playwright test tests/e2e/sidepanel-code-lookup.spec.js --project=chromium",
+    "package:extension": "node ./scripts/package-extension.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
   }
 }

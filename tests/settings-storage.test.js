@@ -7,6 +7,7 @@ import {
   getExtensionSettings,
   migrateTemplatesToStorageArea,
   resolveAppliedTheme,
+  saveExtensionSettings,
   saveTemplatesToStorage,
 } from "../storage-utils.js";
 
@@ -62,6 +63,36 @@ test("getExtensionSettings returns the default settings when nothing is stored",
   const settings = await getExtensionSettings();
 
   assert.deepEqual(settings, DEFAULT_SETTINGS);
+});
+
+test("saveExtensionSettings persists a trimmed building API key", async () => {
+  installChromeMock();
+
+  const settings = await saveExtensionSettings({
+    buildingApiKey: "  sample-service-key  ",
+  });
+
+  const stored = await chrome.storage.local.get(["extensionSettings"]);
+
+  assert.equal(settings.buildingApiKey, "sample-service-key");
+  assert.equal(stored.extensionSettings.buildingApiKey, "sample-service-key");
+});
+
+test("saveExtensionSettings allows clearing the building API key", async () => {
+  installChromeMock({
+    localData: {
+      extensionSettings: {
+        ...DEFAULT_SETTINGS,
+        buildingApiKey: "existing-key",
+      },
+    },
+  });
+
+  const settings = await saveExtensionSettings({
+    buildingApiKey: "   ",
+  });
+
+  assert.equal(settings.buildingApiKey, "");
 });
 
 test("resolveAppliedTheme follows the system preference only for system theme", () => {

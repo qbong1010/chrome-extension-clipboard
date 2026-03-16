@@ -1,0 +1,7 @@
+Task 5 negative-path baseline
+
+Potential failure condition tracked:
+- If `icons/` stays absent and the packaged manifest still exposes `icons/*`, the release artifact should be considered invalid.
+
+Observed result:
+- Not reproduced after packaging fix. The packaged manifest no longer exposes `icons/*`.

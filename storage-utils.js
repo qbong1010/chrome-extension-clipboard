@@ -5,6 +5,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   theme: "system",
   templateStorageArea: "local",
   clipboardWriteEnabled: true,
+  buildingApiKey: "",
 });
 
 export const DEFAULT_SYNC_LIMITS = Object.freeze({
@@ -27,6 +28,10 @@ export function normalizeSettings(rawSettings = {}) {
       typeof rawSettings?.clipboardWriteEnabled === "boolean"
         ? rawSettings.clipboardWriteEnabled
         : DEFAULT_SETTINGS.clipboardWriteEnabled,
+    buildingApiKey:
+      typeof rawSettings?.buildingApiKey === "string"
+        ? rawSettings.buildingApiKey.trim()
+        : DEFAULT_SETTINGS.buildingApiKey,
   };
 }
 

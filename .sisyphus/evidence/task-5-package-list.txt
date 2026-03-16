@@ -1,0 +1,30 @@
+Task 5 evidence: packaged archive contents
+
+Command: npm run package:extension
+Status: PASS
+
+Artifact:
+- `dist/paste-right-v1.5.zip`
+
+Archive listing:
+- address-codes.json
+- background.js
+- building-code-lookup.js
+- default-templates.json
+- iframe-content.js
+- images/donate_qr.jpg
+- libs/Sortable.js
+- manifest.json
+- sidepanel.html
+- sidepanel.js
+- storage-utils.js
+- styles/sidepanel.css
+
+Packaged manifest `web_accessible_resources`:
+- `images/*`
+- `address-codes.json`
+- `default-templates.json`
+
+Conclusion:
+- Runtime-required files are present in the packaged archive.
+- Missing `icons/` assets were handled by removing the stale `icons/*` entry from the packaged manifest.

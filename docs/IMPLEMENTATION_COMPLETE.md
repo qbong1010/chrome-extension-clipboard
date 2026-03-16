@@ -248,7 +248,8 @@ chrome-extension-clipboard/
 ## 🧪 검증
 
 - `npm test` — 저장소 전환/기본 설정/quota 검사 테스트 통과
-- `node --check sidepanel.js background.js storage-utils.js tests/settings-storage.test.js` — 문법 검증 통과
+- `node --check sidepanel.js building-code-lookup.js storage-utils.js background.js tests/building-code-lookup.test.js` — 문법 검증 통과
+- `npx playwright test tests/e2e/sidepanel-code-lookup.spec.js --project=chromium` — MV3 확장 런타임에서 코드 조회 페이지/모달/자동 입력 회귀 검증 통과
 
 ## 🎊 완료!
 

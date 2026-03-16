@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.2] - 2026-03-16
+
+### Changed
+- 🗺️ **주소 기반 코드 조회 UX 분리**
+  - `건축물대장 조회` 화면의 인라인 주소 검색 흐름을 분리하고, 시군구코드/법정동코드 옆 도움 영역에서 모달로 진입하도록 조정
+  - 좌측 네비게이션에 **법정동 코드 찾기** 전용 페이지를 추가해 기존 주소 검색 UI를 별도 화면으로 유지
+  - 설정 아이콘을 네비게이션의 마지막 순서로 재배치
+
+### Added
+- 🧪 **Playwright MV3 런타임 스모크 테스트**
+  - `tests/e2e/sidepanel-code-lookup.spec.js` 추가
+  - `playwright.config.js` 및 확장 로드용 fixture 추가
+  - 코드 조회 모달, 전용 페이지, 포커스 복귀, 건축물 조회 submit mock 경로를 자동 검증
+
+### Fixed
+- 🎯 **모달 선택 후 포커스 복귀 개선**
+  - 코드 선택 후 `bunInput` 포커스가 모달 close 시점 이후에도 유지되도록 조정
+
+- 🔐 **건축물대장 API 키 설정 분리**
+  - 소스에 하드코딩된 API 키 대신 설정 화면의 저장 키를 사용하도록 변경
+  - 키가 없을 때는 네트워크 호출 전에 명확한 안내 메시지를 표시하도록 조정
+
+### Docs
+- `README.md`, `docs/frontend.md`, `docs/IMPLEMENTATION_COMPLETE.md`를 현재 전용 페이지 + 모달 기반 UX와 Playwright 검증 흐름에 맞게 갱신
+
 ## [1.5.1] - 2026-03-13
 
 ### Added

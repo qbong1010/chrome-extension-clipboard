@@ -1,0 +1,27 @@
+Command: npm test
+Status: PASS
+
+> chrome-extension-clipboard@1.0.0 test
+> node --test
+
+✔ basic arithmetic works
+✔ searchAddressByKeyword finds a known address
+✔ searchAddressByKeyword ignores spaces
+✔ searchAddressByKeyword returns empty array for one-character keyword
+✔ searchAddressByKeyword never returns more than ten results
+✔ applyAddressSelection fills building inputs and preserves other fields
+✔ applyAddressSelection can skip bun input focus
+✔ getExtensionSettings returns the default settings when nothing is stored
+✔ resolveAppliedTheme follows the system preference only for system theme
+✔ evaluateSyncTemplatePayload reports when a payload exceeds sync item limits
+✔ migrateTemplatesToStorageArea preserves templates and updates the active area on success
+✔ migrateTemplatesToStorageArea leaves the active area unchanged when sync quota is exceeded
+✔ saveTemplatesToStorage rejects oversize sync writes before persistence
+
+Summary:
+- tests: 13
+- pass: 13
+- fail: 0
+- cancelled: 0
+- skipped: 0
+- todo: 0
