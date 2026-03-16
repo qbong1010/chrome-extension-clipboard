@@ -253,18 +253,19 @@ async function saveTemplatesData() {
   await refreshMenus();
 }
 
+
 // 템플릿 목록 렌더링 함수
 function renderTemplates() {
   userList.innerHTML = "";
 
   templates.forEach((template, index) => {
     const listItem = document.createElement("li");
-    listItem.className = "md3-list-item";
+    listItem.className = "list-item";
     listItem.setAttribute("draggable", "true");
     listItem.setAttribute("data-index", index);
 
     const clipboardBtn = document.createElement("div");
-    clipboardBtn.className = "clipboard-copy";
+    clipboardBtn.className = "btn-icon clipboard-copy";
 
     const clipboardIcon = document.createElement("span");
     clipboardIcon.className = "material-symbols-rounded";
@@ -288,7 +289,7 @@ function renderTemplates() {
     content.appendChild(title);
 
     const menuBtn = document.createElement("button");
-    menuBtn.className = "md3-icon-button";
+    menuBtn.className = "btn-icon";
 
     const menuIcon = document.createElement("span");
     menuIcon.className = "material-symbols-rounded";
@@ -341,7 +342,7 @@ function showToast(message) {
   // 새 토스트 생성
   const toast = document.createElement("div");
   toast.id = "toast";
-  toast.className = "md3-toast";
+  toast.className = "toast-message";
   toast.textContent = message;
 
   document.body.appendChild(toast);
@@ -365,7 +366,7 @@ function showToast(message) {
 // Sortable.js 초기화 함수 수정
 function initSortable() {
   new Sortable(userList, {
-    animation: 150,
+    animation: 200,
     handle: ".list-item-content", // drag-handle 제거하고 list-item-content만 드래그 핸들로 지정
     ghostClass: "sortable-ghost",
     chosenClass: "sortable-chosen",

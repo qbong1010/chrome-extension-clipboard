@@ -6,11 +6,11 @@ export function createAddressFinderMarkup({
 } = {}) {
   return `
     <div class="address-finder-panel" data-role="address-finder-root">
-      <div class="md3-field">
+      <div class="form-group mb-4">
         <label>주소 검색</label>
-        <input class="md3-input" data-role="address-search-input" type="text" placeholder="${placeholder}">
+        <input class="input-field" data-role="address-search-input" type="text" placeholder="${placeholder}">
       </div>
-      <button class="md3-filled-button address-search-button" data-role="address-search-button" type="button">
+      <button class="btn-primary address-search-button" data-role="address-search-button" type="button">
         <span class="material-symbols-rounded">search</span>
         <span>${buttonLabel}</span>
       </button>
