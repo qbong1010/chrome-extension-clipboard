@@ -1,7 +1,0 @@
-Negative-path behaviors captured in Task 3
-
-- Short query `금` produced `0개 결과` and `검색 결과가 없습니다` as expected.
-- Escape dismissal returned focus to `#openCodeLookupBtn`.
-- Backdrop dismissal returned focus to `#openCodeLookupBtn`.
-
-No failing runtime blockers remain for Task 4.

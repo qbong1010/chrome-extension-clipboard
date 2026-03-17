@@ -1,9 +1,0 @@
-Command: node --check "sidepanel.js" && node --check "building-code-lookup.js" && node --check "storage-utils.js" && node --check "background.js"
-Status: PASS
-Exit marker: SYNTAX_CHECK_EXIT:0
-
-Checked files:
-- sidepanel.js
-- building-code-lookup.js
-- storage-utils.js
-- background.js

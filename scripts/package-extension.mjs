@@ -20,7 +20,6 @@ const filesToCopy = [
   "building-code-lookup.js",
   "address-codes.json",
   "default-templates.json",
-  "iframe-content.js",
 ];
 
 const directoriesToCopy = ["styles", "libs", "images"];

@@ -1,54 +1,62 @@
 {
-    "manifest_version": 3,
-    "name": "Paste Right",
-    "description": "우클릭 한번으로 자주 쓰는 메시지를 즉시 입력합니다.",
-    "version": "1.5",
-  
-    "action": {},
-  
-    "side_panel": {
-      "default_path": "sidepanel.html"
-    },
-  
-    "permissions": [
-      "contextMenus",
-      "storage",
-      "activeTab",
-      "tabs",
-      "scripting",
-      "sidePanel"
-    ],
-  
-    "host_permissions": [
-      "<all_urls>"
-    ],
-  
-    "background": {
-      "service_worker": "background.js",
-      "type": "module"
-    },
-  
+  "manifest_version": 3,
+  "name": "MyLittleAPI",
+  "description": "공공 API를 비개발자들이 손쉽게 조회하고 활용할 수 있도록 돕는 도구입니다.",
+  "version": "1.5",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "MyLittleAPI",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab",
+    "tabs",
+    "scripting",
+    "sidePanel"
+  ],
+  "host_permissions": [],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "web_accessible_resources": [
     {
-      "resources": ["icons/*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "icons/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     },
     {
-      "resources": ["images/*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "images/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     },
     {
-      "resources": ["address-codes.json", "default-templates.json"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "address-codes.json",
+        "default-templates.json"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
-  ],
-
-    "content_scripts": [
-      {
-        "matches": ["https://gw.dohwa.co.kr/ekp/view/eml/emlMailRegPopup*"],
-        "js": ["iframe-content.js"],
-        "all_frames": true
-      }
-    ]
+  ]
 }
-  

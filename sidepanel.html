@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="utf-8">
   <title>Paste Right Manager</title>
@@ -7,6 +8,7 @@
   <!-- Sortable.js 라이브러리 -->
   <script src="./libs/Sortable.js"></script>
 </head>
+
 <body>
   <nav class="nav-rail">
     <div class="nav-item active" data-view-target="templateManagerView" title="템플릿 관리">
@@ -27,8 +29,8 @@
   <div class="content-area" id="templateManagerView">
     <header class="page-header">
       <div class="header-title-group">
-        <span class="material-symbols-rounded text-primary">folder_copy</span>
-        <h3 class="page-title">규봉봉 간편 도구</h3>
+        <span class="material-symbols-rounded text-primary">campaign</span>
+        <h3 class="page-title">복사붙여넣기 문구 즐겨찾기</h3>
       </div>
       <button id="addTemplateBtn" class="btn-icon" title="템플릿 추가">
         <span class="material-symbols-rounded">add</span>
@@ -80,7 +82,8 @@
           </select>
         </div>
         <div class="status-text">
-          <span>동기화 저장소 사용량:</span> <span id="syncUsage" class="text-bold">0 B</span> / <span id="syncQuota" class="text-bold">0 B</span>
+          <span>동기화 저장소 사용량:</span> <span id="syncUsage" class="text-bold">0 B</span> / <span id="syncQuota"
+            class="text-bold">0 B</span>
         </div>
         <p class="help-text">동기화 저장소는 용량이 작아서 템플릿이 많으면 전환이 거부될 수 있습니다.</p>
       </section>
@@ -92,7 +95,8 @@
         </div>
         <div class="form-group">
           <label for="buildingApiKeyInput">API 키</label>
-          <input id="buildingApiKeyInput" class="input-field" type="password" placeholder="serviceKey 값을 입력하세요" autocomplete="off">
+          <input id="buildingApiKeyInput" class="input-field" type="password" placeholder="serviceKey 값을 입력하세요"
+            autocomplete="off">
         </div>
         <div class="action-row">
           <button id="saveBuildingApiKeyBtn" class="btn-primary" type="button">
@@ -113,13 +117,16 @@
         </div>
         <div class="radio-group">
           <span class="radio-label">클립보드 쓰기</span>
-          <label class="radio-item"><input type="radio" name="clipboardWrite" value="allow" checked><span>허용</span></label>
+          <label class="radio-item"><input type="radio" name="clipboardWrite" value="allow"
+              checked><span>허용</span></label>
           <label class="radio-item"><input type="radio" name="clipboardWrite" value="deny"><span>차단</span></label>
         </div>
         <div class="radio-group disabled" aria-disabled="true">
           <span class="radio-label">클립보드 읽기</span>
-          <label class="radio-item"><input type="radio" name="clipboardRead" value="allow" disabled><span>허용</span></label>
-          <label class="radio-item"><input type="radio" name="clipboardRead" value="deny" checked disabled><span>차단</span></label>
+          <label class="radio-item"><input type="radio" name="clipboardRead" value="allow"
+              disabled><span>허용</span></label>
+          <label class="radio-item"><input type="radio" name="clipboardRead" value="deny" checked
+              disabled><span>차단</span></label>
         </div>
       </section>
     </div>
@@ -140,7 +147,7 @@
             <p>코드를 이미 알고 있다면 바로 조회하세요. 주소로 찾고 싶다면 물음표 버튼을 눌러주세요.</p>
           </div>
         </div>
-        
+
         <div class="form-row inputs-with-help">
           <div class="form-col">
             <div class="form-group">
@@ -157,12 +164,12 @@
             <span>주소 찾기</span>
           </button>
         </div>
-        
+
         <div class="form-group mt-4">
           <label for="platGbInput">대지구분코드 (0=대지, 1=산, 2=블록)</label>
           <input id="platGbInput" class="input-field" type="text" placeholder="예: 0" maxlength="1" value="0">
         </div>
-        
+
         <div class="form-row">
           <div class="form-group form-col">
             <label for="bunInput">본번 (4자리)</label>
@@ -173,7 +180,7 @@
             <input id="jiInput" class="input-field" type="text" placeholder="예: 0017" maxlength="4" value="0000">
           </div>
         </div>
-        
+
         <div class="action-row">
           <button id="searchBtn" class="btn-primary flex-1">
             <span class="material-symbols-rounded">search</span>
@@ -220,7 +227,7 @@
       <section id="legalDongFinderMount" class="mount-node"></section>
     </div>
   </div>
-  
+
   <!-- Modals -->
   <dialog id="editDlg" class="modal-dialog">
     <div class="modal-content">
@@ -247,8 +254,9 @@
 
   <dialog id="donateQrDlg" class="modal-dialog">
     <div class="modal-content">
-      <h4 class="modal-title text-center">커피한잔 후원하기</h4>
-      <p class="text-center text-secondary mb-4" style="font-size: 14px; line-height: 1.6;">프로그램이 유용하셨다면 개발자를 응원해주세요!<br>추후 업데이트에 큰 힘이 됩니다!</p>
+      <h4 class="modal-title text-center">에이전트에 에너지 충전하기 ☕</h4>
+      <p class="text-center text-secondary mb-4" style="font-size: 14px; line-height: 1.6;">단순 반복 업무는 에이전트에게 맡기고 퇴근 시간을
+        앞당기세요!<br>도움이 되셨다면 개발자에게 커피 한 잔 어떠신가요?</p>
       <div class="qr-container">
         <img id="qrImage" src="./images/donate_qr.jpg" alt="QR Code" class="qr-image">
       </div>
@@ -275,4 +283,5 @@
 
   <script type="module" src="sidepanel.js"></script>
 </body>
+
 </html>
