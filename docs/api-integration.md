@@ -16,8 +16,8 @@ graph LR
     end
 
     subgraph Backend ["백엔드 & API"]
-        E[chrome.storage.local\nextensionSettings + local templates]
-        E2[chrome.storage.sync\nsync templates]
+        E["chrome.storage.local<br>extensionSettings + local templates"]
+        E2["chrome.storage.sync<br>sync templates"]
         F[chrome.runtime.sendMessage]
         G[navigator.clipboard]
         H[건축물대장 공공 API]
@@ -25,17 +25,17 @@ graph LR
         J[default-templates.json]
     end
 
-    A -->|GET/SET userTemplates\n(active area)| E
-    A -->|GET/SET userTemplates\n(active area)| E2
+    A -->|"GET/SET userTemplates<br>(active area)"| E
+    A -->|"GET/SET userTemplates<br>(active area)"| E2
     A -->|refresh-menus| F
     A -->|writeText| G
     A -->|fetch 최초 로드| J
 
     B -->|SET extensionSettings| E
-    B -->|GET/SET userTemplates\n(active area)| E
-    B -->|GET/SET userTemplates\n(active area)| E2
-    D -->|SET userTemplates\n(active area)| E
-    D -->|SET userTemplates\n(active area)| E2
+    B -->|"GET/SET userTemplates<br>(active area)"| E
+    B -->|"GET/SET userTemplates<br>(active area)"| E2
+    D -->|"SET userTemplates<br>(active area)"| E
+    D -->|"SET userTemplates<br>(active area)"| E2
     D -->|refresh-menus| F
 
     C -->|fetch 조회| H
@@ -50,7 +50,7 @@ graph LR
 
 | 사용자 액션 | 호출 함수 | API / 엔드포인트 | Method | 데이터 | 비고 |
 |------------|----------|-----------------|--------|--------|------|
-| 화면 초기 로드 | `loadTemplates()` | `getActiveTemplateStorageArea()` | GET | `'local' | 'sync'` | DOMContentLoaded 시 |
+| 화면 초기 로드 | `loadTemplates()` | `getActiveTemplateStorageArea()` | GET | `'local' / 'sync'` | DOMContentLoaded 시 |
 | 화면 초기 로드 | `loadTemplates()` | `chrome.storage.local.get(['userTemplates'])` / `chrome.storage.sync.get(['userTemplates'])` | GET | `userTemplates[]` | 활성 저장소 기준 |
 | 화면 초기 로드 (비어있을 때) | `loadTemplates()` | `fetch('default-templates.json')` | GET | 기본 템플릿 JSON | 최초 사용 시에만 |
 | 📋 복사 버튼 클릭 | `copyToClipboard(text)` | `navigator.clipboard.writeText(text)` | — | 템플릿 body 텍스트 | `clipboardWriteEnabled=true`일 때만 |
