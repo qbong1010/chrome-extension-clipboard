@@ -1442,12 +1442,24 @@ function renderKonepsCardDetail(main, ext, container) {
     qualFields.push({ label: "지역제한", value: ext.region.prtcptPsblRgnNm || "-" });
   }
 
-  // 4. 담당자
+  // 4. 일정 및 개찰 정보
+  const scheduleFields = [
+    { label: "입찰서접수개시", value: formatKonepsDate(main.bidBeginDt) },
+    { label: "입찰서접수마감", value: formatKonepsDate(main.bidEndDt) },
+    { label: "개찰(입찰)일시", value: formatKonepsDate(main.opengDt) },
+    { label: "개찰장소", value: main.opengPlce },
+  ];
+
+  // 5. 담당자 정보
   const managerFields = [
     { label: "공고기관", value: main.ntceInsttNm },
+    { label: "수요기관", value: main.dminsttNm || main.ntceInsttNm },
     { label: "담당자명", value: main.ntcedtlPrvnmNm || main.chrgptpnNm },
     { label: "연락처", value: main.ntcedtlPrvnmTelno || "-" },
   ];
+
+  // 6. 입찰참가자격 (긴 텍스트)
+  const qualificationText = main.bidPrtcptQualfcnCn || main.indstrytyLmtYn === "Y" ? "공고서 참조 (제한 있음)" : "제한 없음";
 
   const createTable = (rows) => {
     let rowsHtml = "";
@@ -1541,8 +1553,20 @@ function renderKonepsCardDetail(main, ext, container) {
     </div>
     
     <div class="koneps-detail-section">
-      <h5><span class="material-symbols-rounded">contact_mail</span> 담당자 정보</h5>
+      <h5><span class="material-symbols-rounded">schedule</span> 입찰 일정 및 개찰</h5>
+      ${createTable(scheduleFields)}
+    </div>
+
+    <div class="koneps-detail-section">
+      <h5><span class="material-symbols-rounded">contact_mail</span> 담당자 및 수요기관</h5>
       ${createTable(managerFields)}
+    </div>
+
+    <div class="koneps-detail-section">
+      <h5><span class="material-symbols-rounded">assignment_ind</span> 입찰 참가 자격</h5>
+      <div class="koneps-detail-text-block">
+        ${escapeHtml(qualificationText)}
+      </div>
     </div>
 
     ${filesHtml}
