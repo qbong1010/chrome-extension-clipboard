@@ -1347,7 +1347,12 @@ function renderKonepsResults(result) {
       const detailContainer = card.querySelector(`#detail-${no}`);
       let detailLoaded = false;
 
-      card.addEventListener("click", async () => {
+      card.addEventListener("click", async (e) => {
+        // 기본 클릭 방어 로직: a 태그(다운로드/원문 등) 또는 복사 버튼 등을 눌렀을 땐 확장/축소 동작 막기
+        if (e.target.closest("a") || e.target.closest("button")) {
+          return;
+        }
+        
         const isExpanded = card.classList.toggle("expanded");
         if (isExpanded && !detailLoaded) {
           detailLoaded = true;
@@ -1514,7 +1519,7 @@ function renderKonepsCardDetail(main, ext, container) {
         <h5><span class="material-symbols-rounded">attach_file</span> 첨부파일 (${uniqueFiles.length}건)</h5>
         <div class="koneps-file-list">
           ${uniqueFiles.map(f => `
-            <a href="${escapeAttr(f.url)}" target="_blank" rel="noreferrer" class="koneps-file-link" onclick="event.stopPropagation();">
+            <a href="${escapeAttr(f.url)}" target="_blank" rel="noreferrer" class="koneps-file-link">
               <span class="material-symbols-rounded">download</span>
               ${escapeHtml(f.name)}
             </a>
@@ -1543,7 +1548,7 @@ function renderKonepsCardDetail(main, ext, container) {
     ${filesHtml}
 
     ${dtlUrl ? `
-      <a href="${dtlUrl}" target="_blank" rel="noreferrer" class="koneps-original-link-btn" onclick="event.stopPropagation();">
+      <a href="${dtlUrl}" target="_blank" rel="noreferrer" class="koneps-original-link-btn">
         <span class="material-symbols-rounded">open_in_new</span>
         나라장터 원본상세 보기
       </a>

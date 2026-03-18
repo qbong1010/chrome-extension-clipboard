@@ -109,14 +109,14 @@ const BID_ENDPOINTS = Object.freeze({
 
   // ── 제한/지역 ──
   getLicenseLimit: {
-    path: "/getBidPblancListInfoLicenseLimit",
+    path: "/getBidPblancListInfo{type}LicenseLimit",
     description: "면허제한 정보 조회",
-    typed: false,
+    typed: true,
   },
   getRegion: {
-    path: "/getBidPblancListInfoPrtcptPsblRgn",
+    path: "/getBidPblancListInfo{type}PrtcptPsblRgn",
     description: "참가가능지역 정보 조회",
-    typed: false,
+    typed: true,
   },
 
   // ── 구매대상물품 ──
