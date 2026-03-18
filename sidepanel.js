@@ -1460,6 +1460,37 @@ function renderKonepsCardDetail(main, ext, container) {
     return `<table class="koneps-detail-table"><tbody>${rowsHtml}</tbody></table>`;
   };
 
+  // 5. 첨부파일 추출 로직 (동적)
+  const files = [];
+  for (const [key, value] of Object.entries(main)) {
+    if (key.toLowerCase().includes('fileurl') && value && typeof value === 'string' && value.startsWith('http')) {
+      let nameKey = key.replace(/url/i, 'Nm');
+      
+      files.push({
+        url: value,
+        name: main[nameKey] || '다운로드 링크',
+      });
+    }
+  }
+  const uniqueFiles = files.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+
+  let filesHtml = "";
+  if (uniqueFiles.length > 0) {
+    filesHtml = `
+      <div class="koneps-detail-section">
+        <h5><span class="material-symbols-rounded">attach_file</span> 첨부파일 (${uniqueFiles.length}건)</h5>
+        <div class="koneps-file-list">
+          ${uniqueFiles.map(f => `
+            <a href="${escapeAttr(f.url)}" target="_blank" rel="noreferrer" class="koneps-file-link" onclick="event.stopPropagation();">
+              <span class="material-symbols-rounded">download</span>
+              ${escapeHtml(f.name)}
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   container.innerHTML = `
     <div class="koneps-detail-section">
       <h5><span class="material-symbols-rounded">article</span> 공고 일반</h5>
@@ -1476,10 +1507,12 @@ function renderKonepsCardDetail(main, ext, container) {
       ${createTable(managerFields)}
     </div>
 
+    ${filesHtml}
+
     ${dtlUrl ? `
       <a href="${dtlUrl}" target="_blank" rel="noreferrer" class="koneps-original-link-btn" onclick="event.stopPropagation();">
         <span class="material-symbols-rounded">open_in_new</span>
-        나라장터 원본상세 및 첨부파일 보기
+        나라장터 원본상세 보기
       </a>
     ` : ""}
   `;

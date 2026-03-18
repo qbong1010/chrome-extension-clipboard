@@ -780,3 +780,31 @@ tr:hover td { background-color: var(--bg-surface-hover); }
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
+
+.koneps-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.koneps-file-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all var(--transition);
+}
+.koneps-file-link:hover {
+  background-color: var(--primary-bg);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+.koneps-file-link .material-symbols-rounded {
+  font-size: 18px;
+}
