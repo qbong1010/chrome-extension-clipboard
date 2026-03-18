@@ -1204,16 +1204,30 @@ async function executeKonepsSearch() {
 
   const service = konepsApi[konepsCurrentService];
   const workType = konepsElements.workType.value;
-  const endpointKey = resolveKonepsEndpoint(konepsCurrentService);
+  const keywordValue = konepsElements.keyword.value.trim();
+  const hasKeyword = keywordValue.length > 0;
+  const endpointKey = resolveKonepsEndpoint(konepsCurrentService, hasKeyword);
 
   try {
+    const fieldMap = getKonepsFieldMap(konepsCurrentService);
+    const queryParams = {
+      inqryDiv: "1",
+      inqryBgnDt: formatDateParam(startDate, "0000"),
+      inqryEndDt: formatDateParam(endDate, "2359"),
+    };
+
+    if (hasKeyword) {
+      const isNumberPattern = /^[0-9\-]+$/.test(keywordValue);
+      if (isNumberPattern) {
+        queryParams[fieldMap.no] = keywordValue;
+      } else {
+        queryParams[fieldMap.title] = keywordValue;
+      }
+    }
+
     const result = await service.call(endpointKey, {
       workType,
-      params: {
-        inqryDiv: "1",
-        inqryBgnDt: formatDateParam(startDate, "0000"),
-        inqryEndDt: formatDateParam(endDate, "2359"),
-      },
+      params: queryParams,
       pageNo: konepsCurrentPage,
       numOfRows: KONEPS_PAGE_SIZE,
     });
@@ -1236,7 +1250,16 @@ async function executeKonepsSearch() {
   }
 }
 
-function resolveKonepsEndpoint(service) {
+function resolveKonepsEndpoint(service, hasKeyword = false) {
+  if (hasKeyword) {
+    switch (service) {
+      case "bid":      return "getListPPS";
+      case "award":    return "getWinnerStatusPPS";
+      case "contract": return "getListPPS";
+      case "prespec":  return "getListPPS";
+      default:         return "getListPPS";
+    }
+  }
   switch (service) {
     case "bid":      return "getList";
     case "award":    return "getWinnerStatus";
