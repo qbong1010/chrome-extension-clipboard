@@ -1384,7 +1384,7 @@ async function loadKonepsDetail(bidNtceNo, mainItem, containerElement) {
     // 기초금액 조회 (지원되는 경우)
     if (["goods", "construction", "service"].includes(workType)) {
       promises.push(
-        service.call("getBasisAmount", { workType, params: { inqryDiv: "1", bidNtceNo } })
+        service.call("getBasisAmount", { workType, params: { bidNtceNo } })
           .then(res => additionalData.basisAmount = res.items[0])
           .catch(e => console.warn("기초금액 조회 실패:", e))
       );
@@ -1392,7 +1392,7 @@ async function loadKonepsDetail(bidNtceNo, mainItem, containerElement) {
     
     // 참가가능지역 (공통)
     promises.push(
-      service.call("getRegion", { params: { inqryDiv: "1", bidNtceNo } })
+      service.call("getRegion", { params: { bidNtceNo } })
         .then(res => additionalData.region = res.items[0])
         .catch(e => console.warn("참가가능지역 조회 실패:", e))
     );
@@ -1460,18 +1460,51 @@ function renderKonepsCardDetail(main, ext, container) {
     return `<table class="koneps-detail-table"><tbody>${rowsHtml}</tbody></table>`;
   };
 
-  // 5. 첨부파일 추출 로직 (동적)
+  // 5. 첨부파일 추출 로직 (동적 개선)
   const files = [];
-  for (const [key, value] of Object.entries(main)) {
-    if (key.toLowerCase().includes('fileurl') && value && typeof value === 'string' && value.startsWith('http')) {
-      let nameKey = key.replace(/url/i, 'Nm');
-      
-      files.push({
-        url: value,
-        name: main[nameKey] || '다운로드 링크',
-      });
+  const urlKeys = Object.keys(main).filter(k => 
+    k.toLowerCase().includes('url') && 
+    main[k] && 
+    typeof main[k] === 'string' && 
+    main[k].startsWith('http') &&
+    k !== 'bidNtceDtlUrl' && 
+    k !== 'bidNtceUrl'
+  );
+
+  urlKeys.forEach(urlKey => {
+    const urlValue = main[urlKey];
+    
+    // URL 키명에서 번호 추출 (예: ntceSpecDocUrl1 -> 1)
+    const match = urlKey.match(/\d+$/);
+    const num = match ? match[0] : "";
+    
+    // 같은 번호로 끝나는 'Nm'(이름) 관련 키 찾기 (예: ntceSpecFileNm1)
+    let fileNm = "첨부파일 다운로드";
+    if (num) {
+      const nameKey = Object.keys(main).find(k => k.toLowerCase().includes('nm') && k.endsWith(num) && k.toLowerCase().includes('file'));
+      if (nameKey) fileNm = main[nameKey];
+    } else {
+      // 번호가 없는 경우 가장 유사한 이름 키를 찾음 (예: docUrl -> docNm, fileUrl -> fileNm)
+      const possibleNameKey = urlKey.replace(/url/i, 'Nm');
+      if (main[possibleNameKey]) fileNm = main[possibleNameKey];
+    }
+    
+    files.push({ url: urlValue, name: fileNm });
+  });
+
+  // 하드코딩된 일반적인 파일 확장 키명 폴백 처리
+  for (let i = 1; i <= 10; i++) {
+    const fallbackUrl = main[`ntceSpecDocUrl${i}`] || main[`ntceSpecFileUrl${i}`];
+    const fallbackNm = main[`ntceSpecFileNm${i}`] || `첨부파일 ${i}`;
+    
+    if (fallbackUrl && fallbackUrl.startsWith('http')) {
+      // 이미 추가되지 않았다면 추가
+      if (!files.find(f => f.url === fallbackUrl)) {
+        files.push({ url: fallbackUrl, name: fallbackNm });
+      }
     }
   }
+
   const uniqueFiles = files.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
 
   let filesHtml = "";
