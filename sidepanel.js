@@ -1281,6 +1281,12 @@ function renderKonepsResults(result) {
   result.items.forEach((item) => {
     const card = document.createElement("div");
     card.className = "koneps-result-card";
+    
+    // 입찰공고(bid)일 경우에만 확장 가능하도록 처리
+    const isBid = konepsCurrentService === "bid";
+    if (isBid) {
+      card.classList.add("expandable");
+    }
 
     const no = item[fieldMap.no] || "";
     const title = item[fieldMap.title] || "제목 없음";
@@ -1289,7 +1295,7 @@ function renderKonepsResults(result) {
     const amount = item[fieldMap.amount];
     const serviceLabel = getServiceLabel(konepsCurrentService);
 
-    card.innerHTML = `
+    let html = `
       <div class="koneps-card-header">
         <span class="koneps-card-no">${escapeHtml(no)}</span>
         <span class="koneps-card-badge ${konepsCurrentService}">${serviceLabel}</span>
@@ -1305,20 +1311,30 @@ function renderKonepsResults(result) {
           <span>${escapeHtml(formatKonepsDate(date))}</span>
         </div>
       </div>
-      ${amount ? `<div class="koneps-card-footer">
-        <span class="koneps-card-amount">${formatAmount(amount)}</span>
+      <div class="koneps-card-footer">
+        ${amount ? `<span class="koneps-card-amount">${formatAmount(amount)}</span>` : `<span></span>`}
         <button class="koneps-card-copy" data-copy="${escapeAttr(title + "\n" + no)}">
           <span class="material-symbols-rounded">content_copy</span>
           복사
         </button>
-      </div>` : `<div class="koneps-card-footer">
-        <span></span>
-        <button class="koneps-card-copy" data-copy="${escapeAttr(title + "\n" + no)}">
-          <span class="material-symbols-rounded">content_copy</span>
-          복사
-        </button>
-      </div>`}
+      </div>
     `;
+
+    if (isBid) {
+      html += `
+        <div class="koneps-card-detail" id="detail-${no}">
+          <div class="koneps-detail-loader">
+            <div class="spinner" style="width:20px; height:20px; border-width:2px;"></div>
+            <span>상세정보를 불러오는 중입니다...</span>
+          </div>
+        </div>
+        <div class="koneps-expand-indicator">
+          <span class="material-symbols-rounded">expand_more</span>
+        </div>
+      `;
+    }
+
+    card.innerHTML = html;
 
     // 복사 버튼 이벤트
     const copyBtn = card.querySelector(".koneps-card-copy");
@@ -1327,11 +1343,146 @@ function renderKonepsResults(result) {
       copyToClipboard(copyBtn.dataset.copy);
     });
 
+    if (isBid) {
+      const detailContainer = card.querySelector(`#detail-${no}`);
+      let detailLoaded = false;
+
+      card.addEventListener("click", async () => {
+        const isExpanded = card.classList.toggle("expanded");
+        if (isExpanded && !detailLoaded) {
+          detailLoaded = true;
+          try {
+            await loadKonepsDetail(no, item, detailContainer);
+          } catch (error) {
+            detailContainer.innerHTML = `<div class="error-box" style="margin:0;">상세정보를 불러오지 못했습니다. (${error.message})</div>`;
+            detailLoaded = false;
+          }
+        }
+      });
+    }
+
     konepsElements.resultList.appendChild(card);
   });
 
   // 페이지네이션 렌더링
   renderKonepsPagination(totalPages);
+}
+
+async function loadKonepsDetail(bidNtceNo, mainItem, containerElement) {
+  // 병렬로 기초금액, 참가가능지역 등 추가 정보 조회
+  const service = konepsApi.bid;
+  const workType = konepsElements.workType.value;
+  
+  const additionalData = {
+    basisAmount: null,
+    region: null,
+  };
+
+  try {
+    const promises = [];
+    
+    // 기초금액 조회 (지원되는 경우)
+    if (["goods", "construction", "service"].includes(workType)) {
+      promises.push(
+        service.call("getBasisAmount", { workType, params: { inqryDiv: "1", bidNtceNo } })
+          .then(res => additionalData.basisAmount = res.items[0])
+          .catch(e => console.warn("기초금액 조회 실패:", e))
+      );
+    }
+    
+    // 참가가능지역 (공통)
+    promises.push(
+      service.call("getRegion", { params: { inqryDiv: "1", bidNtceNo } })
+        .then(res => additionalData.region = res.items[0])
+        .catch(e => console.warn("참가가능지역 조회 실패:", e))
+    );
+
+    await Promise.all(promises);
+    
+    renderKonepsCardDetail(mainItem, additionalData, containerElement);
+  } catch (error) {
+    throw error;
+  }
+}
+
+function renderKonepsCardDetail(main, ext, container) {
+  const dtlUrl = main.bidNtceDtlUrl || "";
+  
+  // 1. 공고 일반
+  const generalFields = [
+    { label: "게시일시", value: formatKonepsDate(main.bidNtceDt) },
+    { label: "참조번호", value: main.refNo },
+    { label: "입찰방식", value: main.bidMethdNm },
+    { label: "낙찰방법", value: main.sucsfbidMthdNm },
+    { label: "낙찰방법세부기준", value: main.sucsfbidMthdCdNm || "-" },
+    { label: "계약방법", value: main.cntrctMethdNm },
+    { label: "국제입찰구분", value: main.intnlBidYn === "Y" ? "국제입찰" : "국내입찰" },
+    { label: "재입찰여부", value: main.rbidPermitYn === "Y" ? "허용" : "불가" },
+  ];
+
+  // 2. 가격 관련
+  const priceFields = [
+    { label: "추정가격", value: main.presmptPrce ? formatAmount(main.presmptPrce) : "-" },
+    { label: "배정예산", value: main.asignBdgtAmt ? formatAmount(main.asignBdgtAmt) : "-" },
+  ];
+  if (ext.basisAmount) {
+    priceFields.push({ label: "기초금액", value: ext.basisAmount.bsisAmount ? formatAmount(ext.basisAmount.bsisAmount) : "-" });
+  }
+
+  // 3. 자격 관련
+  const qualFields = [
+    { label: "공동수급", value: main.indstrytyLmtYn === "Y" ? "제한" : "제한없음" }
+  ];
+  if (ext.region) {
+    qualFields.push({ label: "지역제한", value: ext.region.prtcptPsblRgnNm || "-" });
+  }
+
+  // 4. 담당자
+  const managerFields = [
+    { label: "공고기관", value: main.ntceInsttNm },
+    { label: "담당자명", value: main.ntcedtlPrvnmNm || main.chrgptpnNm },
+    { label: "연락처", value: main.ntcedtlPrvnmTelno || "-" },
+  ];
+
+  const createTable = (rows) => {
+    let rowsHtml = "";
+    // 2단 배열
+    for (let i = 0; i < rows.length; i += 2) {
+      const row1 = rows[i];
+      const row2 = rows[i+1];
+      rowsHtml += `<tr>
+        <th style="width: 20%;">${escapeHtml(row1.label)}</th>
+        <td style="width: 30%;">${escapeHtml(row1.value || "-")}</td>
+        <th style="width: 20%;">${row2 ? escapeHtml(row2.label) : ""}</th>
+        <td style="width: 30%;">${row2 ? escapeHtml(row2.value || "-") : ""}</td>
+      </tr>`;
+    }
+    return `<table class="koneps-detail-table"><tbody>${rowsHtml}</tbody></table>`;
+  };
+
+  container.innerHTML = `
+    <div class="koneps-detail-section">
+      <h5><span class="material-symbols-rounded">article</span> 공고 일반</h5>
+      ${createTable(generalFields)}
+    </div>
+    
+    <div class="koneps-detail-section">
+      <h5><span class="material-symbols-rounded">gavel</span> 입찰자격 및 가격</h5>
+      ${createTable([...qualFields, ...priceFields])}
+    </div>
+    
+    <div class="koneps-detail-section">
+      <h5><span class="material-symbols-rounded">contact_mail</span> 담당자 정보</h5>
+      ${createTable(managerFields)}
+    </div>
+
+    ${dtlUrl ? `
+      <a href="${dtlUrl}" target="_blank" rel="noreferrer" class="koneps-original-link-btn" onclick="event.stopPropagation();">
+        <span class="material-symbols-rounded">open_in_new</span>
+        나라장터 원본상세 및 첨부파일 보기
+      </a>
+    ` : ""}
+  `;
 }
 
 function getKonepsFieldMap(service) {

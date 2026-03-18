@@ -656,3 +656,127 @@ tr:hover td { background-color: var(--bg-surface-hover); }
 :root[data-theme='dark'] .koneps-card-badge.contract { background: #78350F; color: #FDE68A; }
 :root[data-theme='dark'] .koneps-card-badge.prespec { background: #4C1D95; color: #C4B5FD; }
 
+/* ===== KONEPS Expandable Detail View ===== */
+.koneps-result-card.expandable {
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 34px; /* Space for the expand indicator */
+}
+.koneps-expand-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-surface-hover);
+  color: var(--text-tertiary);
+  transition: all var(--transition);
+  border-top: 1px solid transparent;
+}
+.koneps-result-card.expandable:hover .koneps-expand-indicator {
+  background-color: var(--primary-bg);
+  color: var(--primary-color);
+  border-top-color: var(--border-color);
+}
+.koneps-expand-indicator .material-symbols-rounded {
+  font-size: 20px;
+  transition: transform var(--transition);
+}
+.koneps-result-card.expanded .koneps-expand-indicator .material-symbols-rounded {
+  transform: rotate(180deg);
+}
+.koneps-result-card.expanded .koneps-expand-indicator {
+  border-top-color: var(--border-color);
+}
+
+.koneps-card-detail {
+  display: none;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-color);
+  animation: slideDownFade 0.3s ease-out forwards;
+}
+.koneps-result-card.expanded .koneps-card-detail {
+  display: block;
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.koneps-detail-section {
+  margin-bottom: 24px;
+}
+.koneps-detail-section:last-child {
+  margin-bottom: 12px;
+}
+.koneps-detail-section h5 {
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.koneps-detail-section h5 .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--primary-color);
+}
+.koneps-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  border-top: 2px solid var(--primary-color);
+}
+.koneps-detail-table th, .koneps-detail-table td {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+  line-height: 1.4;
+}
+.koneps-detail-table th {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-secondary);
+  font-weight: 600;
+  width: 25%;
+}
+.koneps-detail-table td {
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+}
+
+.koneps-detail-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.koneps-original-link-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: var(--radius-md);
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--transition);
+}
+.koneps-original-link-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
