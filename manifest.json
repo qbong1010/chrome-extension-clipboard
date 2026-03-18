@@ -27,7 +27,10 @@
     "scripting",
     "sidePanel"
   ],
-  "host_permissions": [],
+  "host_permissions": [
+    "http://apis.data.go.kr/*",
+    "https://apis.data.go.kr/*"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"

@@ -17,6 +17,9 @@
     <div class="nav-item" id="navSearch" data-view-target="buildingSearchView" title="건축물대장 조회">
       <span class="material-symbols-rounded">search</span>
     </div>
+    <div class="nav-item" id="navKoneps" data-view-target="konepsSearchView" title="나라장터 조회">
+      <span class="material-symbols-rounded">gavel</span>
+    </div>
     <div class="nav-item" id="navCodeFinder" data-view-target="legalDongCodeView" title="법정동 코드 찾기">
       <span class="material-symbols-rounded">map</span>
     </div>
@@ -108,6 +111,28 @@
           </a>
         </div>
         <p class="help-text">비워두고 저장하면 등록된 키를 제거합니다.</p>
+      </section>
+
+      <section class="surface-card">
+        <div class="section-header">
+          <h4>나라장터 API</h4>
+          <p>공공데이터포털 API 키를 저장하면 나라장터 조회에 사용합니다.</p>
+        </div>
+        <div class="form-group">
+          <label for="konepsApiKeyInput">API 키</label>
+          <input id="konepsApiKeyInput" class="input-field" type="password" placeholder="serviceKey 값을 입력하세요"
+            autocomplete="off">
+        </div>
+        <div class="action-row">
+          <button id="saveKonepsApiKeyBtn" class="btn-primary" type="button">
+            <span class="material-symbols-rounded">key</span>
+            <span>API 키 저장</span>
+          </button>
+          <a class="btn-secondary" href="https://www.data.go.kr/" target="_blank" rel="noreferrer">
+            공공데이터포털 바로가기
+          </a>
+        </div>
+        <p class="help-text">건축물대장 API 키와 동일한 키를 사용할 수 있습니다.</p>
       </section>
 
       <section class="surface-card">
@@ -206,6 +231,85 @@
         </div>
         <div id="simpleView" class="result-card"></div>
         <div id="detailView" class="result-table-container" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 나라장터 조회 화면 -->
+  <div class="content-area" id="konepsSearchView" style="display: none;">
+    <header class="page-header">
+      <h3 class="page-title">⚖️ 나라장터 조회</h3>
+    </header>
+
+    <div class="surface-card scroll-y">
+      <!-- 서비스 탭 -->
+      <div class="koneps-tabs">
+        <button class="koneps-tab active" data-service="bid">입찰공고</button>
+        <button class="koneps-tab" data-service="award">낙찰결과</button>
+        <button class="koneps-tab" data-service="contract">계약현황</button>
+        <button class="koneps-tab" data-service="prespec">사전규격</button>
+      </div>
+
+      <!-- 검색 필터 -->
+      <div class="koneps-filters">
+        <div class="form-group">
+          <label for="konepsWorkType">업무구분</label>
+          <select id="konepsWorkType" class="input-field select-field">
+            <option value="goods">물품</option>
+            <option value="service">용역</option>
+            <option value="construction">공사</option>
+            <option value="foreign">외자</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group form-col">
+            <label for="konepsStartDate">조회 시작일</label>
+            <input id="konepsStartDate" class="input-field" type="date">
+          </div>
+          <div class="form-group form-col">
+            <label for="konepsEndDate">조회 종료일</label>
+            <input id="konepsEndDate" class="input-field" type="date">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="konepsKeyword">공고번호 / 공고명 (선택)</label>
+          <input id="konepsKeyword" class="input-field" type="text" placeholder="공고번호 또는 키워드 입력">
+        </div>
+
+        <div class="action-row">
+          <button id="konepsSearchBtn" class="btn-primary flex-1">
+            <span class="material-symbols-rounded">search</span>
+            <span>검색</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 로딩 -->
+      <div id="konepsLoading" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>나라장터 정보를 조회하는 중입니다...</p>
+      </div>
+
+      <!-- 에러 -->
+      <div id="konepsError" class="error-box" style="display: none;"></div>
+
+      <!-- 검색 결과 -->
+      <div id="konepsResults" style="display: none;">
+        <div class="koneps-results-header">
+          <span id="konepsResultCount" class="text-bold">0건</span>
+          <span id="konepsPageInfo" class="text-secondary text-sm"></span>
+        </div>
+        <div id="konepsResultList" class="koneps-result-list"></div>
+        <div id="konepsPagination" class="koneps-pagination"></div>
+      </div>
+
+      <!-- 빈 상태 -->
+      <div id="konepsEmpty" class="koneps-empty">
+        <span class="material-symbols-rounded koneps-empty-icon">policy</span>
+        <p>검색 조건을 입력하고 조회해보세요</p>
+        <p class="text-sm text-secondary">입찰공고, 낙찰결과, 계약현황, 사전규격을<br>한곳에서 확인할 수 있습니다.</p>
       </div>
     </div>
   </div>

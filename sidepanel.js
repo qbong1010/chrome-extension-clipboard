@@ -14,6 +14,13 @@ import {
   createAddressFinderMarkup,
   searchAddressByKeyword,
 } from "./building-code-lookup.js";
+import {
+  KonepsAPI,
+  WORK_TYPES,
+  formatDateParam,
+  formatAmount,
+  KonepsError,
+} from "./koneps-api.js";
 
 // DOM 요소
 const userList = document.getElementById("userList");
@@ -82,6 +89,11 @@ function syncSettingsControls() {
   themeSelect.value = extensionSettings.theme;
   storageTypeSelect.value = extensionSettings.templateStorageArea;
   buildingApiKeyInput.value = extensionSettings.buildingApiKey;
+
+  const konepsInput = document.getElementById("konepsApiKeyInput");
+  if (konepsInput) {
+    konepsInput.value = extensionSettings.konepsApiKey || "";
+  }
 
   clipboardWriteRadios.forEach((radio) => {
     radio.checked =
@@ -453,16 +465,18 @@ const navItems = document.querySelectorAll(".nav-item");
 const templateManagerView = document.getElementById("templateManagerView");
 const settingsView = document.getElementById("settingsView");
 const addTemplateBtn = document.getElementById("addTemplateBtn");
+const konepsSearchView = document.getElementById("konepsSearchView");
 const viewMap = {
   templateManagerView,
   settingsView,
   buildingSearchView,
   legalDongCodeView,
+  konepsSearchView,
 };
 
 function showView(viewId) {
   Object.entries(viewMap).forEach(([key, view]) => {
-    view.style.display = key === viewId ? "block" : "none";
+    view.style.display = key === viewId ? "flex" : "none";
   });
 
   navItems.forEach((item) => {
@@ -519,6 +533,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   showView("templateManagerView");
   await initializeSettings();
   bindSettingsEvents();
+  initKoneps();
   await loadTemplates();
 });
 
@@ -1067,3 +1082,329 @@ detailViewBtn.addEventListener("click", () => {
 
 // 예제 버튼 이벤트
 exampleBtn.addEventListener("click", fillExampleData);
+
+//---------------- 나라장터 조회 기능 ----------------
+
+let konepsApi = null;
+let konepsCurrentService = "bid";
+let konepsCurrentPage = 1;
+const KONEPS_PAGE_SIZE = 10;
+
+const konepsElements = {
+  tabs: document.querySelectorAll(".koneps-tab"),
+  workType: document.getElementById("konepsWorkType"),
+  startDate: document.getElementById("konepsStartDate"),
+  endDate: document.getElementById("konepsEndDate"),
+  keyword: document.getElementById("konepsKeyword"),
+  searchBtn: document.getElementById("konepsSearchBtn"),
+  loading: document.getElementById("konepsLoading"),
+  error: document.getElementById("konepsError"),
+  results: document.getElementById("konepsResults"),
+  resultCount: document.getElementById("konepsResultCount"),
+  pageInfo: document.getElementById("konepsPageInfo"),
+  resultList: document.getElementById("konepsResultList"),
+  pagination: document.getElementById("konepsPagination"),
+  empty: document.getElementById("konepsEmpty"),
+  apiKeyInput: document.getElementById("konepsApiKeyInput"),
+  saveApiKeyBtn: document.getElementById("saveKonepsApiKeyBtn"),
+};
+
+function initKoneps() {
+  // 기본 날짜 설정 (최근 7일)
+  const today = new Date();
+  const weekAgo = new Date(today);
+  weekAgo.setDate(today.getDate() - 7);
+  konepsElements.endDate.value = toDateInputValue(today);
+  konepsElements.startDate.value = toDateInputValue(weekAgo);
+
+  // API 인스턴스 생성
+  if (extensionSettings.konepsApiKey) {
+    konepsApi = new KonepsAPI(extensionSettings.konepsApiKey);
+  }
+
+  // 탭 이벤트
+  konepsElements.tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      konepsCurrentService = tab.dataset.service;
+      konepsElements.tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+    });
+  });
+
+  // 검색 버튼
+  konepsElements.searchBtn.addEventListener("click", () => {
+    konepsCurrentPage = 1;
+    executeKonepsSearch();
+  });
+
+  // Enter 키 검색
+  konepsElements.keyword.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      konepsCurrentPage = 1;
+      executeKonepsSearch();
+    }
+  });
+
+  // API 키 저장 이벤트
+  konepsElements.saveApiKeyBtn.addEventListener("click", handleKonepsApiKeySave);
+  konepsElements.apiKeyInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleKonepsApiKeySave();
+    }
+  });
+}
+
+function toDateInputValue(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+async function handleKonepsApiKeySave() {
+  extensionSettings = await saveExtensionSettings({
+    konepsApiKey: konepsElements.apiKeyInput.value,
+  });
+
+  if (extensionSettings.konepsApiKey) {
+    konepsApi = new KonepsAPI(extensionSettings.konepsApiKey);
+    showToast("나라장터 API 키가 저장되었습니다.");
+  } else {
+    konepsApi = null;
+    showToast("나라장터 API 키가 제거되었습니다.");
+  }
+}
+
+function showKonepsState(state) {
+  konepsElements.loading.style.display = state === "loading" ? "flex" : "none";
+  konepsElements.error.style.display = state === "error" ? "block" : "none";
+  konepsElements.results.style.display = state === "results" ? "block" : "none";
+  konepsElements.empty.style.display = state === "empty" ? "flex" : "none";
+}
+
+async function executeKonepsSearch() {
+  if (!konepsApi) {
+    if (!extensionSettings.konepsApiKey) {
+      showToast("설정에서 나라장터 API 키를 먼저 등록해주세요.");
+      return;
+    }
+    konepsApi = new KonepsAPI(extensionSettings.konepsApiKey);
+  }
+
+  const startDate = konepsElements.startDate.value;
+  const endDate = konepsElements.endDate.value;
+
+  if (!startDate || !endDate) {
+    showToast("조회 기간을 선택해주세요.");
+    return;
+  }
+
+  showKonepsState("loading");
+
+  const service = konepsApi[konepsCurrentService];
+  const workType = konepsElements.workType.value;
+  const endpointKey = resolveKonepsEndpoint(konepsCurrentService);
+
+  try {
+    const result = await service.call(endpointKey, {
+      workType,
+      params: {
+        inqryDiv: "1",
+        inqryBgnDt: formatDateParam(startDate, "0000"),
+        inqryEndDt: formatDateParam(endDate, "2359"),
+      },
+      pageNo: konepsCurrentPage,
+      numOfRows: KONEPS_PAGE_SIZE,
+    });
+
+    if (result.items.length === 0 && result.totalCount === 0) {
+      showKonepsState("empty");
+      konepsElements.empty.querySelector("p").textContent = "검색 결과가 없습니다";
+      return;
+    }
+
+    renderKonepsResults(result);
+    showKonepsState("results");
+  } catch (error) {
+    console.error("나라장터 조회 오류:", error);
+    konepsElements.error.textContent =
+      error instanceof KonepsError
+        ? `[${error.code}] ${error.message}`
+        : error.message || "조회 중 오류가 발생했습니다.";
+    showKonepsState("error");
+  }
+}
+
+function resolveKonepsEndpoint(service) {
+  switch (service) {
+    case "bid":      return "getList";
+    case "award":    return "getWinnerStatus";
+    case "contract": return "getList";
+    case "prespec":  return "getList";
+    default:         return "getList";
+  }
+}
+
+function renderKonepsResults(result) {
+  const totalPages = Math.ceil(result.totalCount / KONEPS_PAGE_SIZE);
+  konepsElements.resultCount.textContent = `${result.totalCount.toLocaleString()}건`;
+  konepsElements.pageInfo.textContent = `${konepsCurrentPage} / ${totalPages} 페이지`;
+
+  konepsElements.resultList.innerHTML = "";
+
+  const fieldMap = getKonepsFieldMap(konepsCurrentService);
+
+  result.items.forEach((item) => {
+    const card = document.createElement("div");
+    card.className = "koneps-result-card";
+
+    const no = item[fieldMap.no] || "";
+    const title = item[fieldMap.title] || "제목 없음";
+    const org = item[fieldMap.org] || "";
+    const date = item[fieldMap.date] || "";
+    const amount = item[fieldMap.amount];
+    const serviceLabel = getServiceLabel(konepsCurrentService);
+
+    card.innerHTML = `
+      <div class="koneps-card-header">
+        <span class="koneps-card-no">${escapeHtml(no)}</span>
+        <span class="koneps-card-badge ${konepsCurrentService}">${serviceLabel}</span>
+      </div>
+      <div class="koneps-card-title">${escapeHtml(title)}</div>
+      <div class="koneps-card-meta">
+        <div class="koneps-card-meta-item">
+          <span class="material-symbols-rounded">apartment</span>
+          <span>${escapeHtml(org)}</span>
+        </div>
+        <div class="koneps-card-meta-item">
+          <span class="material-symbols-rounded">calendar_today</span>
+          <span>${escapeHtml(formatKonepsDate(date))}</span>
+        </div>
+      </div>
+      ${amount ? `<div class="koneps-card-footer">
+        <span class="koneps-card-amount">${formatAmount(amount)}</span>
+        <button class="koneps-card-copy" data-copy="${escapeAttr(title + "\n" + no)}">
+          <span class="material-symbols-rounded">content_copy</span>
+          복사
+        </button>
+      </div>` : `<div class="koneps-card-footer">
+        <span></span>
+        <button class="koneps-card-copy" data-copy="${escapeAttr(title + "\n" + no)}">
+          <span class="material-symbols-rounded">content_copy</span>
+          복사
+        </button>
+      </div>`}
+    `;
+
+    // 복사 버튼 이벤트
+    const copyBtn = card.querySelector(".koneps-card-copy");
+    copyBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      copyToClipboard(copyBtn.dataset.copy);
+    });
+
+    konepsElements.resultList.appendChild(card);
+  });
+
+  // 페이지네이션 렌더링
+  renderKonepsPagination(totalPages);
+}
+
+function getKonepsFieldMap(service) {
+  switch (service) {
+    case "bid":
+      return { no: "bidNtceNo", title: "bidNtceNm", org: "ntceInsttNm", date: "bidClseDt", amount: "presmptPrce" };
+    case "award":
+      return { no: "bidNtceNo", title: "bidNtceNm", org: "dminsttNm", date: "rlOpengDt", amount: "sucsfbidAmt" };
+    case "contract":
+      return { no: "cntrctNo", title: "cntrctNm", org: "cntrctInsttNm", date: "cntrctCnclsDt", amount: "cntrctAmt" };
+    case "prespec":
+      return { no: "bfSpecRgstNo", title: "prdctClsfcNoNm", org: "orderInsttNm", date: "rgstDt", amount: "asignBdgtAmt" };
+    default:
+      return { no: "bidNtceNo", title: "bidNtceNm", org: "ntceInsttNm", date: "bidClseDt", amount: "presmptPrce" };
+  }
+}
+
+function getServiceLabel(service) {
+  const labels = { bid: "입찰공고", award: "낙찰결과", contract: "계약현황", prespec: "사전규격" };
+  return labels[service] || service;
+}
+
+function formatKonepsDate(dateStr) {
+  if (!dateStr) return "-";
+  // 다양한 포맷 처리: YYYY/MM/DD HH:MM, YYYYMMDDHHMMSS, YYYYMMDDHHMM 등
+  const cleaned = dateStr.replace(/[\/ :]/g, "");
+  if (cleaned.length >= 8) {
+    const y = cleaned.slice(0, 4);
+    const m = cleaned.slice(4, 6);
+    const d = cleaned.slice(6, 8);
+    const hh = cleaned.slice(8, 10) || "";
+    const mm = cleaned.slice(10, 12) || "";
+    return hh ? `${y}.${m}.${d} ${hh}:${mm}` : `${y}.${m}.${d}`;
+  }
+  return dateStr;
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function escapeAttr(str) {
+  if (!str) return "";
+  return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderKonepsPagination(totalPages) {
+  konepsElements.pagination.innerHTML = "";
+  if (totalPages <= 1) return;
+
+  const maxVisible = 5;
+  let startPage = Math.max(1, konepsCurrentPage - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  // 이전 버튼
+  const prevBtn = createPageBtn("◀", konepsCurrentPage > 1);
+  if (konepsCurrentPage > 1) {
+    prevBtn.addEventListener("click", () => {
+      konepsCurrentPage--;
+      executeKonepsSearch();
+    });
+  }
+  konepsElements.pagination.appendChild(prevBtn);
+
+  // 페이지 번호
+  for (let i = startPage; i <= endPage; i++) {
+    const btn = createPageBtn(String(i), true);
+    if (i === konepsCurrentPage) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      konepsCurrentPage = i;
+      executeKonepsSearch();
+    });
+    konepsElements.pagination.appendChild(btn);
+  }
+
+  // 다음 버튼
+  const nextBtn = createPageBtn("▶", konepsCurrentPage < totalPages);
+  if (konepsCurrentPage < totalPages) {
+    nextBtn.addEventListener("click", () => {
+      konepsCurrentPage++;
+      executeKonepsSearch();
+    });
+  }
+  konepsElements.pagination.appendChild(nextBtn);
+}
+
+function createPageBtn(text, enabled) {
+  const btn = document.createElement("button");
+  btn.className = "koneps-page-btn";
+  btn.textContent = text;
+  btn.disabled = !enabled;
+  return btn;
+}

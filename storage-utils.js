@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   templateStorageArea: "local",
   clipboardWriteEnabled: true,
   buildingApiKey: "",
+  konepsApiKey: "",
 });
 
 export const DEFAULT_SYNC_LIMITS = Object.freeze({
@@ -32,6 +33,10 @@ export function normalizeSettings(rawSettings = {}) {
       typeof rawSettings?.buildingApiKey === "string"
         ? rawSettings.buildingApiKey.trim()
         : DEFAULT_SETTINGS.buildingApiKey,
+    konepsApiKey:
+      typeof rawSettings?.konepsApiKey === "string"
+        ? rawSettings.konepsApiKey.trim()
+        : DEFAULT_SETTINGS.konepsApiKey,
   };
 }
 

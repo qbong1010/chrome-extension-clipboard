@@ -115,6 +115,7 @@ body {
   padding: 24px;
   overflow: hidden;
   background-color: var(--bg-base);
+  min-height: 0;
 }
 
 /* Typography & Utilities */
@@ -130,7 +131,7 @@ h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 600; color: var(--text-primary)
 .mt-4 { margin-top: 16px; }
 .flex-1 { flex: 1; }
 .justify-center { justify-content: center; }
-.scroll-y { overflow-y: auto; padding-right: 4px; }
+.scroll-y { overflow-y: auto; padding-right: 4px; flex: 1; min-height: 0; }
 
 /* Header */
 .page-header {
@@ -442,3 +443,216 @@ tr:hover td { background-color: var(--bg-surface-hover); }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ===== KONEPS (나라장터) ===== */
+
+/* Service Tabs */
+.koneps-tabs {
+  display: flex;
+  background-color: var(--bg-base);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  margin-bottom: 20px;
+  gap: 2px;
+}
+.koneps-tab {
+  flex: 1;
+  padding: 10px 6px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+  white-space: nowrap;
+}
+.koneps-tab:hover { color: var(--text-primary); }
+.koneps-tab.active {
+  background-color: var(--bg-surface);
+  color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Filters */
+.koneps-filters { margin-bottom: 20px; }
+.mb-0 { margin-bottom: 0; }
+
+/* Results Header */
+.koneps-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 16px;
+  font-size: 14px;
+}
+
+/* Result Cards */
+.koneps-result-list { display: flex; flex-direction: column; gap: 12px; }
+
+.koneps-result-card {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-base);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.koneps-result-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
+}
+.koneps-result-card:active {
+  transform: scale(0.99);
+}
+
+.koneps-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.koneps-card-no {
+  font-size: 12px;
+  font-family: 'Inter', monospace;
+  color: var(--primary-color);
+  font-weight: 600;
+  background: var(--primary-bg);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+.koneps-card-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+.koneps-card-badge.bid { background: #DBEAFE; color: #1E40AF; }
+.koneps-card-badge.award { background: #D1FAE5; color: #065F46; }
+.koneps-card-badge.contract { background: #FEF3C7; color: #92400E; }
+.koneps-card-badge.prespec { background: #EDE9FE; color: #5B21B6; }
+
+.koneps-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.koneps-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.koneps-card-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.koneps-card-meta-item .material-symbols-rounded {
+  font-size: 16px;
+  color: var(--text-tertiary);
+}
+
+.koneps-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+.koneps-card-amount {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+.koneps-card-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--primary-bg);
+  color: var(--primary-color);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.koneps-card-copy:hover { transform: scale(1.05); }
+.koneps-card-copy .material-symbols-rounded { font-size: 14px; }
+
+/* Pagination */
+.koneps-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.koneps-page-btn {
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.koneps-page-btn:hover { background-color: var(--bg-surface-hover); color: var(--text-primary); }
+.koneps-page-btn.active {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary);
+  border-color: var(--primary-color);
+}
+.koneps-page-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Empty State */
+.koneps-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.koneps-empty-icon {
+  font-size: 64px;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+.koneps-empty p { margin: 0 0 8px; line-height: 1.6; }
+
+:root[data-theme='dark'] .koneps-card-badge.bid { background: #1E3A5F; color: #93C5FD; }
+:root[data-theme='dark'] .koneps-card-badge.award { background: #064E3B; color: #6EE7B7; }
+:root[data-theme='dark'] .koneps-card-badge.contract { background: #78350F; color: #FDE68A; }
+:root[data-theme='dark'] .koneps-card-badge.prespec { background: #4C1D95; color: #C4B5FD; }
+
