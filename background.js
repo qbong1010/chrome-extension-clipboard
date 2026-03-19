@@ -1,7 +1,6 @@
 /* background.js – Chrome MV3 service worker */
 
 import {
-  getActiveTemplateStorageArea,
   getTemplatesFromStorage,
   saveTemplatesToStorage,
 } from './storage-utils.js';
@@ -27,8 +26,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === ROOT_MENU_ID) return;
 
-  const storageArea = await getActiveTemplateStorageArea();
-  const userTemplates = await getTemplatesFromStorage(storageArea);
+  const userTemplates = await getTemplatesFromStorage();
 
   const tpl = userTemplates.find(t => t.id === info.menuItemId);
   if (!tpl) return;
@@ -66,10 +64,9 @@ async function rebuildMenus() {
       contexts: ['editable']
     });
 
-    const storageArea = await getActiveTemplateStorageArea();
-    const userTemplates = await getTemplatesFromStorage(storageArea);
+    const userTemplates = await getTemplatesFromStorage();
     
-    console.log('로드된 템플릿:', userTemplates, storageArea);
+    console.log('로드된 템플릿:', userTemplates);
 
     // 각 템플릿에 대한 메뉴 항목 생성
     for (const tpl of userTemplates) {
@@ -120,30 +117,19 @@ function insertText(text) {
 
 /* ───────── 초기 샘플 데이터 ───────── */
 async function seedIfEmpty() {
-  const storageArea = await getActiveTemplateStorageArea();
-  const userTemplates = await getTemplatesFromStorage(storageArea);
+  const userTemplates = await getTemplatesFromStorage();
 
   if (userTemplates && userTemplates.length > 0) return;
 
-  const sample = [
-    {
-    id: 'official_01',
-    title: '이메일 도입부 인사',
-    body: '안녕하세요, \n 도화엔지니어링 도시단지1부 정규봉 사원입니다.'
-    },
-    {
-    id: 'official_02',
-    title: '월간공정보고',
-    body: ' - 계획 85.5%, 실적 76.3%(계획대비 89.3%)\n - 지연사유 : ○○군 토지이용계획 확정지연(23년 3월까지 확정목표)\n - 만회대책 : ○○월 심의 상정 시 만회'  
-    },
-    {
-      id: 'official_03',
-      title: '출장정산',
-      body: ' - 남양주도시정비기본계획 출장건 / 자차이용\n - 부시장 보고 조속추진 의견 등'  
-    }
-  ];
+  let defaultTemplates = [];
+  try {
+    const response = await fetch(chrome.runtime.getURL("default-templates.json"));
+    defaultTemplates = await response.json();
+  } catch (err) {
+    console.error("기본 템플릿 로드 실패:", err);
+  }
   
-  await saveTemplatesToStorage(storageArea, sample);
+  await saveTemplatesToStorage(defaultTemplates);
 }
 
 /* ───────── 아이콘 클릭 → 사이드패널 열기 ───────── */

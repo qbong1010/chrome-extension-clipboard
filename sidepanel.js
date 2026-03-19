@@ -1,10 +1,7 @@
 import {
   DEFAULT_SETTINGS,
-  getActiveTemplateStorageArea,
   getExtensionSettings,
-  getSyncQuotaDetails,
   getTemplatesFromStorage,
-  migrateTemplatesToStorageArea,
   resolveAppliedTheme,
   saveExtensionSettings,
   saveTemplatesToStorage,
@@ -50,11 +47,8 @@ let extensionSettings = { ...DEFAULT_SETTINGS };
 const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 const themeSelect = document.getElementById("themeSelect");
-const storageTypeSelect = document.getElementById("storageTypeSelect");
 const buildingApiKeyInput = document.getElementById("buildingApiKeyInput");
 const saveBuildingApiKeyBtn = document.getElementById("saveBuildingApiKeyBtn");
-const syncUsage = document.getElementById("syncUsage");
-const syncQuota = document.getElementById("syncQuota");
 const clipboardWriteRadios = document.querySelectorAll(
   'input[name="clipboardWrite"]',
 );
@@ -68,17 +62,7 @@ async function refreshMenus() {
   });
 }
 
-function formatBytes(bytes) {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
 
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 function applyTheme() {
   const theme = resolveAppliedTheme(extensionSettings.theme, systemThemeQuery.matches);
@@ -87,7 +71,6 @@ function applyTheme() {
 
 function syncSettingsControls() {
   themeSelect.value = extensionSettings.theme;
-  storageTypeSelect.value = extensionSettings.templateStorageArea;
   buildingApiKeyInput.value = extensionSettings.buildingApiKey;
 
   const konepsInput = document.getElementById("konepsApiKeyInput");
@@ -102,21 +85,10 @@ function syncSettingsControls() {
   });
 }
 
-async function updateSyncUsage() {
-  const [usedBytes, quotaDetails] = await Promise.all([
-    chrome.storage.sync.getBytesInUse(null),
-    Promise.resolve(getSyncQuotaDetails()),
-  ]);
-
-  syncUsage.textContent = formatBytes(usedBytes);
-  syncQuota.textContent = formatBytes(quotaDetails.totalBytes);
-}
-
 async function initializeSettings() {
   extensionSettings = await getExtensionSettings();
   syncSettingsControls();
   applyTheme();
-  await updateSyncUsage();
 }
 
 async function handleThemeChange(event) {
@@ -149,39 +121,8 @@ async function handleBuildingApiKeySave() {
   );
 }
 
-async function handleStorageTypeChange(event) {
-  const nextStorageType = event.target.value;
-  const previousStorageType = extensionSettings.templateStorageArea;
-
-  if (nextStorageType === previousStorageType) {
-    return;
-  }
-
-  storageTypeSelect.disabled = true;
-
-  try {
-    const result = await migrateTemplatesToStorageArea(nextStorageType);
-    extensionSettings = result.settings;
-    templates = result.migratedTemplates;
-    renderTemplates();
-    await updateSyncUsage();
-    await refreshMenus();
-    showToast(
-      nextStorageType === "sync"
-        ? "템플릿 저장소를 동기화로 변경했습니다."
-        : "템플릿 저장소를 로컬로 변경했습니다.",
-    );
-  } catch (error) {
-    storageTypeSelect.value = previousStorageType;
-    showToast(error.message || "저장소 전환에 실패했습니다.");
-  } finally {
-    storageTypeSelect.disabled = false;
-  }
-}
-
 function bindSettingsEvents() {
   themeSelect.addEventListener("change", handleThemeChange);
-  storageTypeSelect.addEventListener("change", handleStorageTypeChange);
   saveBuildingApiKeyBtn.addEventListener("click", handleBuildingApiKeySave);
   buildingApiKeyInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
@@ -203,9 +144,8 @@ function bindSettingsEvents() {
 // 초기 로드 함수
 async function loadTemplates() {
   try {
-    const storageArea = await getActiveTemplateStorageArea();
-    const userTemplates = await getTemplatesFromStorage(storageArea);
-    console.log("로드된 템플릿:", userTemplates, storageArea);
+    const userTemplates = await getTemplatesFromStorage();
+    console.log("로드된 템플릿:", userTemplates);
     let hasGeneratedMissingIds = false;
 
     // ID가 없는 템플릿에 ID 추가
@@ -235,14 +175,7 @@ async function loadTemplates() {
         templates = defaultTemplates;
       } catch (error) {
         console.error("기본 템플릿 로드 실패:", error);
-        // 실패 시 비상용 하드코딩 (선택 사항)
-        templates = [
-          {
-            id: "tpl_default_1",
-            title: "기본 템플릿 1",
-            body: "내용을 입력하세요.",
-          },
-        ];
+        
       }
 
       // 스토리지에 저장
@@ -259,12 +192,15 @@ async function loadTemplates() {
 async function saveTemplatesData() {
   console.log("저장할 템플릿:", templates);
 
-  const storageArea = await getActiveTemplateStorageArea();
-  await saveTemplatesToStorage(storageArea, templates);
-  await updateSyncUsage();
+  await saveTemplatesToStorage(templates);
   await refreshMenus();
 }
 
+
+// 외부 클릭 시 드롭다운 닫기
+document.addEventListener("click", () => {
+  document.querySelectorAll(".item-dropdown.show").forEach(drop => drop.classList.remove("show"));
+});
 
 // 템플릿 목록 렌더링 함수
 function renderTemplates() {
@@ -275,6 +211,11 @@ function renderTemplates() {
     listItem.className = "list-item";
     listItem.setAttribute("draggable", "true");
     listItem.setAttribute("data-index", index);
+
+    // 1. 드래그 핸들 (시각화 목적)
+    const dragHandle = document.createElement("div");
+    dragHandle.className = "drag-handle text-tertiary";
+    dragHandle.innerHTML = '<span class="material-symbols-rounded">drag_indicator</span>';
 
     const clipboardBtn = document.createElement("div");
     clipboardBtn.className = "btn-icon clipboard-copy";
@@ -300,30 +241,82 @@ function renderTemplates() {
 
     content.appendChild(title);
 
-    const menuBtn = document.createElement("button");
-    menuBtn.className = "btn-icon";
-
-    const menuIcon = document.createElement("span");
-    menuIcon.className = "material-symbols-rounded";
-    menuIcon.textContent = "more_vert";
-
-    menuBtn.appendChild(menuIcon);
-
-    // 메뉴 버튼 클릭 이벤트
-    menuBtn.addEventListener("click", (e) => {
+    // 2. 내용 클릭 시 편집 모달 활성화
+    content.addEventListener("click", (e) => {
       e.stopPropagation();
       editTemplate(index);
     });
 
+    // 3. 점 세개 메뉴 및 드롭다운
+    const actionContainer = document.createElement("div");
+    actionContainer.className = "action-container";
+
+    const menuBtn = document.createElement("button");
+    menuBtn.className = "btn-icon";
+    menuBtn.innerHTML = '<span class="material-symbols-rounded">more_vert</span>';
+
+    const dropdown = document.createElement("div");
+    dropdown.className = "item-dropdown";
+    
+    const editBtn = document.createElement("button");
+    editBtn.className = "dropdown-item";
+    editBtn.innerHTML = '<span class="material-symbols-rounded">edit</span><span>편집</span>';
+    editBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.remove("show");
+      editTemplate(index);
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "dropdown-item text-danger";
+    deleteBtn.innerHTML = '<span class="material-symbols-rounded">delete</span><span>삭제</span>';
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.remove("show");
+      deleteTemplate(index);
+    });
+
+    dropdown.appendChild(editBtn);
+    dropdown.appendChild(deleteBtn);
+
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      document.querySelectorAll(".item-dropdown.show").forEach(drop => {
+        if (drop !== dropdown) drop.classList.remove("show");
+      });
+      dropdown.classList.toggle("show");
+    });
+
+    actionContainer.appendChild(menuBtn);
+    actionContainer.appendChild(dropdown);
+
+    listItem.appendChild(dragHandle);
     listItem.appendChild(clipboardBtn);
     listItem.appendChild(content);
-    listItem.appendChild(menuBtn);
+    listItem.appendChild(actionContainer);
 
     userList.appendChild(listItem);
   });
 
   // Sortable 초기화 (드래그앤드롭 기능)
   initSortable();
+}
+
+// 템플릿 삭제 함수
+async function deleteTemplate(index) {
+  if (confirm("정말로 이 메모를 삭제하시겠습니까?")) {
+    const previousTemplates = templates.map((template) => ({ ...template }));
+    templates.splice(index, 1);
+    try {
+      await saveTemplatesData();
+      renderTemplates();
+      showToast("메모가 삭제되었습니다.");
+    } catch (error) {
+      templates = previousTemplates;
+      console.error("템플릿 삭제 오류:", error);
+      showToast(error.message || "삭제에 실패했습니다.");
+    }
+  }
 }
 
 // 클립보드에 복사하는 함수
@@ -379,7 +372,7 @@ function showToast(message) {
 function initSortable() {
   new Sortable(userList, {
     animation: 200,
-    handle: ".list-item-content", // drag-handle 제거하고 list-item-content만 드래그 핸들로 지정
+    filter: ".btn-icon, .action-container, .item-dropdown", // 버튼 영역에서는 드래그 방지
     ghostClass: "sortable-ghost",
     chosenClass: "sortable-chosen",
     dragClass: "sortable-drag",

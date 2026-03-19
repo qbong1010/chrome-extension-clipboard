@@ -33,7 +33,7 @@
     <header class="page-header">
       <div class="header-title-group">
         <span class="material-symbols-rounded text-primary">campaign</span>
-        <h3 class="page-title">복사붙여넣기 문구 즐겨찾기</h3>
+        <h3 class="page-title">규봉대리의 클립보드</h3>
       </div>
       <button id="addTemplateBtn" class="btn-icon" title="템플릿 추가">
         <span class="material-symbols-rounded">add</span>
@@ -45,10 +45,6 @@
         <!-- 동적으로 추가됨 -->
       </ul>
     </div>
-    <button id="addBtn" class="fab-button">
-      <span class="material-symbols-rounded">favorite</span>
-      <span>후원하기</span>
-    </button>
   </div>
 
   <!-- 설정 화면 -->
@@ -72,24 +68,6 @@
         </div>
       </section>
 
-      <section class="surface-card">
-        <div class="section-header">
-          <h4>저장소</h4>
-          <p>템플릿 저장 위치를 바꾸면 기존 데이터도 함께 이동합니다.</p>
-        </div>
-        <div class="form-group">
-          <label for="storageTypeSelect">저장소 타입</label>
-          <select id="storageTypeSelect" class="input-field select-field">
-            <option value="local">로컬</option>
-            <option value="sync">동기화</option>
-          </select>
-        </div>
-        <div class="status-text">
-          <span>동기화 저장소 사용량:</span> <span id="syncUsage" class="text-bold">0 B</span> / <span id="syncQuota"
-            class="text-bold">0 B</span>
-        </div>
-        <p class="help-text">동기화 저장소는 용량이 작아서 템플릿이 많으면 전환이 거부될 수 있습니다.</p>
-      </section>
 
       <section class="surface-card">
         <div class="section-header">
@@ -332,6 +310,12 @@
     </div>
   </div>
 
+  <!-- 글로벌 FAB (모든 탭에서 노출) -->
+  <button id="addBtn" class="fab-button">
+    <span class="material-symbols-rounded">favorite</span>
+    <span>후원하기</span>
+  </button>
+
   <!-- Modals -->
   <dialog id="editDlg" class="modal-dialog">
     <div class="modal-content">
@@ -358,9 +342,8 @@
 
   <dialog id="donateQrDlg" class="modal-dialog">
     <div class="modal-content">
-      <h4 class="modal-title text-center">에이전트에 에너지 충전하기 ☕</h4>
-      <p class="text-center text-secondary mb-4" style="font-size: 14px; line-height: 1.6;">단순 반복 업무는 에이전트에게 맡기고 퇴근 시간을
-        앞당기세요!<br>도움이 되셨다면 개발자에게 커피 한 잔 어떠신가요?</p>
+      <h4 class="modal-title text-center">Buy Me A Coffee ☕</h4>
+      <p class="text-center text-secondary mb-4" style="font-size: 14px; line-height: 1.6;">도움이 되셨다면 규봉대리에게 커피 한 잔 어떠신가요?</p>
       <div class="qr-container">
         <img id="qrImage" src="./images/donate_qr.jpg" alt="QR Code" class="qr-image">
       </div>
