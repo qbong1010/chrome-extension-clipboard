@@ -671,6 +671,33 @@ tr:hover td { background-color: var(--bg-surface-hover); }
 .koneps-card-copy:hover { transform: scale(1.05); }
 .koneps-card-copy .material-symbols-rounded { font-size: 14px; }
 
+.koneps-card-favorite {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+.koneps-card-favorite:hover { transform: scale(1.05); }
+.koneps-card-favorite:hover, .koneps-card-favorite.active {
+  background: #FEF3C7;
+  color: #D97706;
+}
+:root[data-theme='dark'] .koneps-card-favorite:hover, :root[data-theme='dark'] .koneps-card-favorite.active {
+  background: rgba(217, 119, 6, 0.2);
+  color: #FBBF24;
+}
+.koneps-card-favorite .material-symbols-rounded { font-size: 14px; transition: font-variation-settings 0.2s; }
+.koneps-card-favorite.active .material-symbols-rounded { font-variation-settings: 'FILL' 1; }
+
 /* Pagination */
 .koneps-pagination {
   display: flex;
@@ -881,4 +908,41 @@ tr:hover td { background-color: var(--bg-surface-hover); }
 }
 .koneps-file-link .material-symbols-rounded {
   font-size: 18px;
+}
+
+/* Map Visualization specific */
+.koneps-map-container {
+  padding: 0 0 16px 0; /* Add some spacing below map */
+}
+.koneps-map {
+  width: 100%;
+  height: 250px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: #FFFFFF; /* Pure white background */
+}
+.leaflet-container {
+  background-color: #FFFFFF !important;
+}
+
+/* Marker Cluster customization */
+.marker-cluster-custom {
+  background-color: rgba(2, 132, 199, 0.6); /* Primary semi-transparent */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.marker-cluster-custom div {
+  background-color: rgba(2, 132, 199, 1); /* Primary solid */
+  color: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: var(--shadow-sm);
 }

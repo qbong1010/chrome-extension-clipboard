@@ -1,5 +1,6 @@
 export const SETTINGS_KEY = "extensionSettings";
 export const USER_TEMPLATES_KEY = "userTemplates";
+export const KONEPS_FAVORITES_KEY = "konepsFavorites";
 
 export const DEFAULT_SETTINGS = Object.freeze({
   theme: "system",
@@ -77,4 +78,14 @@ export async function getTemplatesFromStorage() {
 
 export async function saveTemplatesToStorage(templates) {
   await chrome.storage.local.set({ [USER_TEMPLATES_KEY]: templates });
+}
+
+export async function getKonepsFavoritesFromStorage() {
+  const result = await chrome.storage.local.get([KONEPS_FAVORITES_KEY]);
+  const favorites = result[KONEPS_FAVORITES_KEY];
+  return Array.isArray(favorites) ? favorites : [];
+}
+
+export async function saveKonepsFavoritesToStorage(favorites) {
+  await chrome.storage.local.set({ [KONEPS_FAVORITES_KEY]: favorites });
 }

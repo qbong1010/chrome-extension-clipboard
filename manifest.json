@@ -55,7 +55,9 @@
     {
       "resources": [
         "address-codes.json",
-        "default-templates.json"
+        "default-templates.json",
+        "data/*",
+        "libs/leaflet/*"
       ],
       "matches": [
         "<all_urls>"

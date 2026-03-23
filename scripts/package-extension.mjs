@@ -20,6 +20,7 @@ const filesToCopy = [
   "building-code-lookup.js",
   "address-codes.json",
   "default-templates.json",
+  "koneps-api.js",
 ];
 
 const directoriesToCopy = ["styles", "libs", "images"];

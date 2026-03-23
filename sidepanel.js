@@ -1,3 +1,4 @@
+import { initFavoritesMap, updateFavoritesMap } from "./koneps-map.js";
 import {
   DEFAULT_SETTINGS,
   getExtensionSettings,
@@ -5,6 +6,8 @@ import {
   resolveAppliedTheme,
   saveExtensionSettings,
   saveTemplatesToStorage,
+  getKonepsFavoritesFromStorage,
+  saveKonepsFavoritesToStorage,
 } from "./storage-utils.js";
 import {
   applyAddressSelection,
@@ -42,6 +45,7 @@ let editingIndex = null;
 
 // 템플릿 데이터 저장용 변수
 let templates = [];
+let konepsFavorites = [];
 
 let extensionSettings = { ...DEFAULT_SETTINGS };
 const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -459,12 +463,14 @@ const templateManagerView = document.getElementById("templateManagerView");
 const settingsView = document.getElementById("settingsView");
 const addTemplateBtn = document.getElementById("addTemplateBtn");
 const konepsSearchView = document.getElementById("konepsSearchView");
+const konepsFavoritesView = document.getElementById("konepsFavoritesView");
 const viewMap = {
   templateManagerView,
   settingsView,
   buildingSearchView,
   legalDongCodeView,
   konepsSearchView,
+  konepsFavoritesView,
 };
 
 function showView(viewId) {
@@ -475,6 +481,12 @@ function showView(viewId) {
   navItems.forEach((item) => {
     item.classList.toggle("active", item.dataset.viewTarget === viewId);
   });
+
+  if (viewId === "konepsFavoritesView") {
+    initFavoritesMap().then(() => {
+      updateFavoritesMap(konepsFavorites);
+    });
+  }
 }
 
 navItems.forEach((item) => {
@@ -526,6 +538,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   showView("templateManagerView");
   await initializeSettings();
   bindSettingsEvents();
+  
+  konepsFavorites = await getKonepsFavoritesFromStorage();
+  renderKonepsFavorites();
+  
   initKoneps();
   await loadTemplates();
 });
@@ -1288,6 +1304,10 @@ function renderKonepsResults(result) {
     const amount = item[fieldMap.amount];
     const serviceLabel = getServiceLabel(konepsCurrentService);
 
+    const isFavorite = konepsFavorites.some(fav => fav.no === no);
+    const favIcon = isFavorite ? 'star' : 'star_border';
+    const favClass = isFavorite ? 'koneps-card-favorite active' : 'koneps-card-favorite';
+
     let html = `
       <div class="koneps-card-header">
         <span class="koneps-card-no">${escapeHtml(no)}</span>
@@ -1306,10 +1326,16 @@ function renderKonepsResults(result) {
       </div>
       <div class="koneps-card-footer">
         ${amount ? `<span class="koneps-card-amount">${formatAmount(amount)}</span>` : `<span></span>`}
-        <button class="koneps-card-copy" data-copy="${escapeAttr(title + "\n" + no)}">
-          <span class="material-symbols-rounded">content_copy</span>
-          복사
-        </button>
+        <div class="koneps-card-actions" style="display: flex; gap: 8px;">
+          <button class="${favClass}" data-no="${escapeAttr(no)}">
+            <span class="material-symbols-rounded">${favIcon}</span>
+            관심
+          </button>
+          <button class="koneps-card-copy" data-copy="${escapeAttr(title + "\n" + no)}">
+            <span class="material-symbols-rounded">content_copy</span>
+            복사
+          </button>
+        </div>
       </div>
     `;
 
@@ -1334,6 +1360,22 @@ function renderKonepsResults(result) {
     copyBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       copyToClipboard(copyBtn.dataset.copy);
+    });
+
+    // 관심 버튼 이벤트
+    const favBtn = card.querySelector(".koneps-card-favorite");
+    favBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleKonepsFavorite({
+        service: konepsCurrentService,
+        workType: konepsElements.workType.value,
+        no: no,
+        title: title,
+        org: org,
+        date: date,
+        amount: amount,
+        originalItem: item
+      });
     });
 
     if (isBid) {
@@ -1366,10 +1408,10 @@ function renderKonepsResults(result) {
   renderKonepsPagination(totalPages);
 }
 
-async function loadKonepsDetail(bidNtceNo, mainItem, containerElement) {
+async function loadKonepsDetail(bidNtceNo, mainItem, containerElement, overrideWorkType) {
   // 병렬로 기초금액, 참가가능지역 등 추가 정보 조회
   const service = konepsApi.bid;
-  const workType = konepsElements.workType.value;
+  const workType = overrideWorkType || konepsElements.workType.value;
   
   const additionalData = {
     basisAmount: null,
@@ -1669,4 +1711,156 @@ function createPageBtn(text, enabled) {
   btn.textContent = text;
   btn.disabled = !enabled;
   return btn;
+}
+
+// 즐겨찾기 관련
+async function toggleKonepsFavorite(favData) {
+  const index = konepsFavorites.findIndex(fav => fav.no === favData.no);
+  if (index >= 0) {
+    konepsFavorites.splice(index, 1);
+    showToast("관심 공고에서 제거되었습니다.");
+  } else {
+    favData.savedAt = Date.now();
+    konepsFavorites.push(favData);
+    showToast("관심 공고에 추가되었습니다.");
+  }
+  
+  await saveKonepsFavoritesToStorage(konepsFavorites);
+  
+  renderKonepsFavorites();
+  
+  // 현재 검색 결과 목록 내의 버튼 상태 업데이트
+  if (konepsElements.resultList) {
+    const favBtns = konepsElements.resultList.querySelectorAll(`.koneps-card-favorite[data-no="${escapeAttr(favData.no)}"]`);
+    favBtns.forEach(btn => {
+      const isFav = index < 0; // if index < 0, currently inserted
+      if (isFav) {
+        btn.classList.add("active");
+        btn.querySelector(".material-symbols-rounded").textContent = "star";
+      } else {
+        btn.classList.remove("active");
+        btn.querySelector(".material-symbols-rounded").textContent = "star_border";
+      }
+    });
+  }
+}
+
+function renderKonepsFavorites() {
+  const favListEl = document.getElementById("konepsFavoritesList");
+  const favEmptyEl = document.getElementById("konepsFavoritesEmpty");
+  const mapContainer = document.getElementById("favoritesMapContainer");
+  if (!favListEl || !favEmptyEl) return;
+  
+  if (konepsFavorites.length === 0) {
+    favListEl.style.display = "none";
+    favEmptyEl.style.display = "flex";
+    if (mapContainer) mapContainer.style.display = "none";
+    favListEl.innerHTML = "";
+    updateFavoritesMap(konepsFavorites);
+    return;
+  }
+  
+  favListEl.style.display = "flex";
+  favEmptyEl.style.display = "none";
+  if (mapContainer) mapContainer.style.display = "block";
+  favListEl.innerHTML = "";
+
+  updateFavoritesMap(konepsFavorites);
+  
+  const sortedFavs = [...konepsFavorites].sort((a, b) => b.savedAt - a.savedAt);
+  
+  sortedFavs.forEach(fav => {
+    const card = document.createElement("div");
+    card.className = "koneps-result-card";
+    card.setAttribute("data-no", fav.no);
+    const isBid = fav.service === "bid";
+    if (isBid) {
+      card.classList.add("expandable");
+    }
+    
+    const serviceLabel = getServiceLabel(fav.service);
+    
+    let html = `
+      <div class="koneps-card-header">
+        <span class="koneps-card-no">${escapeHtml(fav.no)}</span>
+        <span class="koneps-card-badge ${fav.service}">${serviceLabel}</span>
+      </div>
+      <div class="koneps-card-title">${escapeHtml(fav.title)}</div>
+      <div class="koneps-card-meta">
+        <div class="koneps-card-meta-item">
+          <span class="material-symbols-rounded">apartment</span>
+          <span>${escapeHtml(fav.org)}</span>
+        </div>
+        <div class="koneps-card-meta-item">
+          <span class="material-symbols-rounded">calendar_today</span>
+          <span>${escapeHtml(formatKonepsDate(fav.date))}</span>
+        </div>
+      </div>
+      <div class="koneps-card-footer">
+        ${fav.amount ? `<span class="koneps-card-amount">${formatAmount(fav.amount)}</span>` : `<span></span>`}
+        <div class="koneps-card-actions" style="display: flex; gap: 8px;">
+          <button class="koneps-card-favorite active" data-no="${escapeAttr(fav.no)}">
+            <span class="material-symbols-rounded">star</span>
+            관심 해제
+          </button>
+          <button class="koneps-card-copy" data-copy="${escapeAttr(fav.title + "\n" + fav.no)}">
+            <span class="material-symbols-rounded">content_copy</span>
+            복사
+          </button>
+        </div>
+      </div>
+    `;
+    
+    if (isBid) {
+      html += `
+        <div class="koneps-card-detail" id="fav-detail-${fav.no}">
+          <div class="koneps-detail-loader">
+            <div class="spinner" style="width:20px; height:20px; border-width:2px;"></div>
+            <span>상세정보를 불러오는 중입니다...</span>
+          </div>
+        </div>
+        <div class="koneps-expand-indicator">
+          <span class="material-symbols-rounded">expand_more</span>
+        </div>
+      `;
+    }
+    
+    card.innerHTML = html;
+    
+    const copyBtn = card.querySelector(".koneps-card-copy");
+    copyBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      copyToClipboard(copyBtn.dataset.copy);
+    });
+    
+    const favBtn = card.querySelector(".koneps-card-favorite");
+    favBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleKonepsFavorite(fav);
+    });
+    
+    if (isBid) {
+      const detailContainer = card.querySelector(`#fav-detail-${fav.no}`);
+      let detailLoaded = false;
+      
+      card.addEventListener("click", async (e) => {
+        if (e.target.closest("a") || e.target.closest("button")) {
+          return;
+        }
+        
+        const isExpanded = card.classList.toggle("expanded");
+        if (isExpanded && !detailLoaded) {
+          detailLoaded = true;
+          try {
+            await loadKonepsDetail(fav.no, fav.originalItem, detailContainer, fav.workType);
+          } catch (error) {
+            detailContainer.innerHTML = `<div class="error-box" style="margin:0;">상세정보를 불러오지 못했습니다. (${error.message})</div>`;
+            detailLoaded = false;
+          }
+        }
+      });
+    }
+    
+    favListEl.appendChild(card);
+  });
 }
